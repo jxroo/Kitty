@@ -24,7 +24,7 @@ export async function findGuarantorMemberPda(
   config: { programAddress?: Address | undefined } = {},
 ): Promise<ProgramDerivedAddress> {
   const {
-    programAddress = "EEUFKgMU7hWUbAiGYTZEHvrXEzfnoE4qKkyS7sa4vEp2" as Address<"EEUFKgMU7hWUbAiGYTZEHvrXEzfnoE4qKkyS7sa4vEp2">,
+    programAddress = "2GCG5LMn8WNcgaZ2aWHCzzDW6hjkTCtYVRzykwsj7pcR" as Address<"2GCG5LMn8WNcgaZ2aWHCzzDW6hjkTCtYVRzykwsj7pcR">,
   } = config;
   return await getProgramDerivedAddress({
     programAddress,

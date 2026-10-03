@@ -53,8 +53,11 @@ import {
   getDisburseInstruction,
   getGuaranteeInstructionAsync,
   getJoinInstructionAsync,
+  getPullContributionInstruction,
+  getPullInstallmentInstruction,
   getRepayInstruction,
   getRequestLoanInstructionAsync,
+  getSetContributionInstructionAsync,
   getWithdrawGuaranteeInstructionAsync,
   getWithdrawInstructionAsync,
   parseCancelLoanInstruction,
@@ -64,8 +67,11 @@ import {
   parseDisburseInstruction,
   parseGuaranteeInstruction,
   parseJoinInstruction,
+  parsePullContributionInstruction,
+  parsePullInstallmentInstruction,
   parseRepayInstruction,
   parseRequestLoanInstruction,
+  parseSetContributionInstruction,
   parseWithdrawGuaranteeInstruction,
   parseWithdrawInstruction,
   type CancelLoanAsyncInput,
@@ -82,12 +88,18 @@ import {
   type ParsedDisburseInstruction,
   type ParsedGuaranteeInstruction,
   type ParsedJoinInstruction,
+  type ParsedPullContributionInstruction,
+  type ParsedPullInstallmentInstruction,
   type ParsedRepayInstruction,
   type ParsedRequestLoanInstruction,
+  type ParsedSetContributionInstruction,
   type ParsedWithdrawGuaranteeInstruction,
   type ParsedWithdrawInstruction,
+  type PullContributionInput,
+  type PullInstallmentInput,
   type RepayInput,
   type RequestLoanAsyncInput,
+  type SetContributionAsyncInput,
   type WithdrawAsyncInput,
   type WithdrawGuaranteeAsyncInput,
 } from "../instructions";
@@ -100,7 +112,7 @@ import {
 } from "../pdas";
 
 export const KASA_PROGRAM_ADDRESS =
-  "EEUFKgMU7hWUbAiGYTZEHvrXEzfnoE4qKkyS7sa4vEp2" as Address<"EEUFKgMU7hWUbAiGYTZEHvrXEzfnoE4qKkyS7sa4vEp2">;
+  "2GCG5LMn8WNcgaZ2aWHCzzDW6hjkTCtYVRzykwsj7pcR" as Address<"2GCG5LMn8WNcgaZ2aWHCzzDW6hjkTCtYVRzykwsj7pcR">;
 
 export enum KasaAccount {
   Kasa,
@@ -183,8 +195,11 @@ export enum KasaInstruction {
   Disburse,
   Guarantee,
   Join,
+  PullContribution,
+  PullInstallment,
   Repay,
   RequestLoan,
+  SetContribution,
   Withdraw,
   WithdrawGuarantee,
 }
@@ -274,6 +289,28 @@ export function identifyKasaInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([3, 228, 34, 207, 180, 0, 247, 19]),
+      ),
+      0,
+    )
+  ) {
+    return KasaInstruction.PullContribution;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([2, 134, 89, 247, 34, 73, 74, 204]),
+      ),
+      0,
+    )
+  ) {
+    return KasaInstruction.PullInstallment;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([234, 103, 67, 82, 208, 234, 219, 166]),
       ),
       0,
@@ -291,6 +328,17 @@ export function identifyKasaInstruction(
     )
   ) {
     return KasaInstruction.RequestLoan;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([229, 177, 23, 174, 242, 180, 180, 242]),
+      ),
+      0,
+    )
+  ) {
+    return KasaInstruction.SetContribution;
   }
   if (
     containsBytes(
@@ -321,7 +369,7 @@ export function identifyKasaInstruction(
 }
 
 export type ParsedKasaInstruction<
-  TProgram extends string = "EEUFKgMU7hWUbAiGYTZEHvrXEzfnoE4qKkyS7sa4vEp2",
+  TProgram extends string = "2GCG5LMn8WNcgaZ2aWHCzzDW6hjkTCtYVRzykwsj7pcR",
 > =
   | ({
       instructionType: KasaInstruction.CancelLoan;
@@ -345,11 +393,20 @@ export type ParsedKasaInstruction<
       instructionType: KasaInstruction.Join;
     } & ParsedJoinInstruction<TProgram>)
   | ({
+      instructionType: KasaInstruction.PullContribution;
+    } & ParsedPullContributionInstruction<TProgram>)
+  | ({
+      instructionType: KasaInstruction.PullInstallment;
+    } & ParsedPullInstallmentInstruction<TProgram>)
+  | ({
       instructionType: KasaInstruction.Repay;
     } & ParsedRepayInstruction<TProgram>)
   | ({
       instructionType: KasaInstruction.RequestLoan;
     } & ParsedRequestLoanInstruction<TProgram>)
+  | ({
+      instructionType: KasaInstruction.SetContribution;
+    } & ParsedSetContributionInstruction<TProgram>)
   | ({
       instructionType: KasaInstruction.Withdraw;
     } & ParsedWithdrawInstruction<TProgram>)
@@ -411,6 +468,20 @@ export function parseKasaInstruction<TProgram extends string>(
         ...parseJoinInstruction(instruction),
       };
     }
+    case KasaInstruction.PullContribution: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: KasaInstruction.PullContribution,
+        ...parsePullContributionInstruction(instruction),
+      };
+    }
+    case KasaInstruction.PullInstallment: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: KasaInstruction.PullInstallment,
+        ...parsePullInstallmentInstruction(instruction),
+      };
+    }
     case KasaInstruction.Repay: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -423,6 +494,13 @@ export function parseKasaInstruction<TProgram extends string>(
       return {
         instructionType: KasaInstruction.RequestLoan,
         ...parseRequestLoanInstruction(instruction),
+      };
+    }
+    case KasaInstruction.SetContribution: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: KasaInstruction.SetContribution,
+        ...parseSetContributionInstruction(instruction),
       };
     }
     case KasaInstruction.Withdraw: {
@@ -489,12 +567,24 @@ export type KasaPluginInstructions = {
   join: (
     input: JoinAsyncInput,
   ) => ReturnType<typeof getJoinInstructionAsync> & SelfPlanAndSendFunctions;
+  pullContribution: (
+    input: PullContributionInput,
+  ) => ReturnType<typeof getPullContributionInstruction> &
+    SelfPlanAndSendFunctions;
+  pullInstallment: (
+    input: PullInstallmentInput,
+  ) => ReturnType<typeof getPullInstallmentInstruction> &
+    SelfPlanAndSendFunctions;
   repay: (
     input: MakeOptional<RepayInput, "payer">,
   ) => ReturnType<typeof getRepayInstruction> & SelfPlanAndSendFunctions;
   requestLoan: (
     input: RequestLoanAsyncInput,
   ) => ReturnType<typeof getRequestLoanInstructionAsync> &
+    SelfPlanAndSendFunctions;
+  setContribution: (
+    input: SetContributionAsyncInput,
+  ) => ReturnType<typeof getSetContributionInstructionAsync> &
     SelfPlanAndSendFunctions;
   withdraw: (
     input: WithdrawAsyncInput,
@@ -562,6 +652,16 @@ export function kasaProgram() {
             ),
           join: (input) =>
             addSelfPlanAndSendFunctions(client, getJoinInstructionAsync(input)),
+          pullContribution: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getPullContributionInstruction(input),
+            ),
+          pullInstallment: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getPullInstallmentInstruction(input),
+            ),
           repay: (input) =>
             addSelfPlanAndSendFunctions(
               client,
@@ -574,6 +674,11 @@ export function kasaProgram() {
             addSelfPlanAndSendFunctions(
               client,
               getRequestLoanInstructionAsync(input),
+            ),
+          setContribution: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getSetContributionInstructionAsync(input),
             ),
           withdraw: (input) =>
             addSelfPlanAndSendFunctions(

@@ -99,6 +99,20 @@ export function overdueNow(loan: Loan, kasa: Pick<Kasa, "periodSecs" | "graceSec
   return due > paid ? due - paid : 0n;
 }
 
+/** Mirrors `pull_installment`: due from the due date itself (no grace), minus what was paid or seized. */
+export function owedNow(loan: Loan, kasa: Pick<Kasa, "periodSecs">, now: number): bigint {
+  return overdueNow(loan, { periodSecs: kasa.periodSecs, graceSecs: 0 }, now);
+}
+
+/** A wallet's token account as far as a direct-debit mandate is concerned. */
+export type WalletToken = { amount: bigint; delegate: string | null; delegatedAmount: bigint };
+
+/** Mirrors `vault::mandate_available`: the allowance given to this member's PDA, capped by the balance. */
+export function mandateAvailable(token: WalletToken | null, memberPda: string): bigint {
+  if (!token || token.delegate !== memberPda) return 0n;
+  return token.delegatedAmount < token.amount ? token.delegatedAmount : token.amount;
+}
+
 export type Installment = {
   k: number;
   /** Cumulative amount that must be paid by this installment. */
@@ -193,6 +207,11 @@ const PROGRAM_ERRORS_PL: Record<number, string> = {
   6020: "Konta poręczycieli nie zgadzają się z pożyczką.",
   6021: "Konto należy do innej kasy.",
   6022: "Błąd arytmetyczny.",
+  6023: "Program odrzucił: żadna rata nie jest jeszcze wymagalna.",
+  6024: "Brak zgody na pobieranie (polecenia zapłaty) albo środków w portfelu.",
+  6025: "Program odrzucił: to konto nie należy do osoby, która płaci.",
+  6026: "Nie ustawiono składki stałej.",
+  6027: "Kolejna składka nie jest jeszcze wymagalna.",
 };
 
 /** Turns wallet/RPC/program errors into one readable Polish sentence. */

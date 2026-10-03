@@ -1,5 +1,5 @@
 {
-  "address": "EEUFKgMU7hWUbAiGYTZEHvrXEzfnoE4qKkyS7sa4vEp2",
+  "address": "2GCG5LMn8WNcgaZ2aWHCzzDW6hjkTCtYVRzykwsj7pcR",
   "metadata": {
     "name": "kasa",
     "version": "0.1.0",
@@ -519,6 +519,172 @@
       ]
     },
     {
+      "name": "pull_contribution",
+      "discriminator": [
+        3,
+        228,
+        34,
+        207,
+        180,
+        0,
+        247,
+        19
+      ],
+      "accounts": [
+        {
+          "name": "kasa",
+          "writable": true
+        },
+        {
+          "name": "member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "member.wallet",
+                "account": "Member"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "from",
+          "docs": [
+            "The member's own wallet."
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "pull_installment",
+      "discriminator": [
+        2,
+        134,
+        89,
+        247,
+        34,
+        73,
+        74,
+        204
+      ],
+      "accounts": [
+        {
+          "name": "kasa",
+          "writable": true,
+          "relations": [
+            "loan"
+          ]
+        },
+        {
+          "name": "loan",
+          "writable": true
+        },
+        {
+          "name": "borrower_member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "loan.borrower",
+                "account": "Loan"
+              }
+            ]
+          }
+        },
+        {
+          "name": "guarantor0",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "guarantor1",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "guarantor2",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "from",
+          "docs": [
+            "The borrower's own wallet: the mandate never reaches anyone else's money."
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "repay",
       "discriminator": [
         234,
@@ -713,6 +879,61 @@
         {
           "name": "installments",
           "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "set_contribution",
+      "discriminator": [
+        229,
+        177,
+        23,
+        174,
+        242,
+        180,
+        180,
+        242
+      ],
+      "accounts": [
+        {
+          "name": "wallet",
+          "signer": true
+        },
+        {
+          "name": "kasa"
+        },
+        {
+          "name": "member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "wallet"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
         }
       ]
     },
@@ -1022,6 +1243,31 @@
       "code": 6022,
       "name": "MathOverflow",
       "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6023,
+      "name": "InstallmentNotDue",
+      "msg": "No installment is due yet"
+    },
+    {
+      "code": 6024,
+      "name": "NoMandate",
+      "msg": "No direct-debit mandate (allowance) or no funds to pull"
+    },
+    {
+      "code": 6025,
+      "name": "WrongPayerAccount",
+      "msg": "Token account does not belong to the member who owes"
+    },
+    {
+      "code": 6026,
+      "name": "ContributionNotSet",
+      "msg": "No standing contribution is set"
+    },
+    {
+      "code": 6027,
+      "name": "ContributionNotDue",
+      "msg": "The next contribution is not due yet"
     }
   ],
   "types": [
@@ -1100,6 +1346,15 @@
           },
           {
             "name": "LoanClosed"
+          },
+          {
+            "name": "InstallmentPulled"
+          },
+          {
+            "name": "ContributionSet"
+          },
+          {
+            "name": "ContributionPulled"
           }
         ]
       }
@@ -1252,6 +1507,13 @@
             "type": "u64"
           },
           {
+            "name": "autopaid",
+            "docs": [
+              "Part of `repaid` pulled from the borrower's wallet under their direct-debit mandate."
+            ],
+            "type": "u64"
+          },
+          {
             "name": "own_collateral",
             "docs": [
               "Borrower's own savings still locked for this loan."
@@ -1352,6 +1614,20 @@
               "Savings taken to cover overdue installments (own loans or guaranteed ones)."
             ],
             "type": "u64"
+          },
+          {
+            "name": "contribution",
+            "docs": [
+              "Standing order: amount pulled into savings once per kasa period (0 = none)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "next_contribution_at",
+            "docs": [
+              "When the next standing-order contribution may be pulled."
+            ],
+            "type": "i64"
           },
           {
             "name": "joined_at",

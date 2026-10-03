@@ -11,7 +11,9 @@ import {
 } from "@solana/kit";
 import {
   findAssociatedTokenPda,
+  getApproveCheckedInstruction,
   getCreateAssociatedTokenIdempotentInstruction,
+  getRevokeInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from "@solana-program/token";
 import {
@@ -25,14 +27,18 @@ import {
   getDisburseInstruction,
   getGuaranteeInstruction,
   getJoinInstruction,
+  getPullContributionInstruction,
+  getPullInstallmentInstruction,
   getRepayInstruction,
   getRequestLoanInstruction,
+  getSetContributionInstruction,
   getWithdrawGuaranteeInstruction,
   getWithdrawInstruction,
   KASA_PROGRAM_ADDRESS,
   type Kasa,
   type Loan,
 } from "../generated";
+import { DECIMALS } from "./kasa";
 
 export async function memberPda(kasa: Address, wallet: Address) {
   return (await findMemberPda({ kasa, wallet }))[0];
@@ -174,12 +180,21 @@ export async function cancelLoanIx(borrower: TransactionSigner, loan: Address, l
   });
 }
 
-export async function disburseIxs(borrower: TransactionSigner, loan: Address, loanData: Loan, kasaData: Kasa) {
+/** Pays the loan out; with `mandate`, in the same transaction the borrower lets the kasa pull the installments. */
+export async function disburseIxs(
+  borrower: TransactionSigner,
+  loan: Address,
+  loanData: Loan,
+  kasaData: Kasa,
+  { mandate = false } = {}
+) {
   const to = await ataOf(borrower.address, kasaData.mint);
-  return [
+  const ixs: Instruction[] = [
     getCreateAssociatedTokenIdempotentInstruction({ payer: borrower, ata: to, owner: borrower.address, mint: kasaData.mint }),
     getDisburseInstruction({ borrower, kasa: loanData.kasa, loan, mint: kasaData.mint, vault: kasaData.vault, to }),
   ];
+  if (mandate) ixs.push(await approveMandateIx(borrower, loanData.kasa, kasaData.mint, loanData.amount));
+  return ixs;
 }
 
 export async function repayIx(payer: TransactionSigner, loan: Address, loanData: Loan, kasaData: Kasa, amount: bigint) {
@@ -203,5 +218,54 @@ export async function collectOverdueIx(loan: Address, loanData: Loan) {
     loan,
     borrowerMember: await memberPda(loanData.kasa, loanData.borrower),
     ...(await guarantorSlots(loanData)),
+  });
+}
+
+/**
+ * Direct-debit mandate: a standard SPL `approve` naming the member's own PDA in this kasa
+ * as delegate, up to `amount`. The program uses it only in pull_installment and
+ * pull_contribution, for what is due. Replaces any earlier delegate on this token account.
+ */
+export async function approveMandateIx(owner: TransactionSigner, kasa: Address, mint: Address, amount: bigint) {
+  return getApproveCheckedInstruction({
+    source: await ataOf(owner.address, mint),
+    mint,
+    delegate: await memberPda(kasa, owner.address),
+    owner,
+    amount,
+    decimals: DECIMALS,
+  });
+}
+
+/** Cancels the mandate at any time (SPL `revoke`). */
+export async function revokeMandateIx(owner: TransactionSigner, mint: Address) {
+  return getRevokeInstruction({ source: await ataOf(owner.address, mint), owner });
+}
+
+/** Needs no signature beyond the fee payer: anyone (a bot) may submit it once an installment is due. */
+export async function pullInstallmentIx(loan: Address, loanData: Loan, kasaData: Kasa) {
+  return getPullInstallmentInstruction({
+    kasa: loanData.kasa,
+    loan,
+    borrowerMember: await memberPda(loanData.kasa, loanData.borrower),
+    ...(await guarantorSlots(loanData)),
+    mint: kasaData.mint,
+    vault: kasaData.vault,
+    from: await ataOf(loanData.borrower, kasaData.mint),
+  });
+}
+
+export async function setContributionIx(wallet: TransactionSigner, kasa: Address, amount: bigint) {
+  return getSetContributionInstruction({ wallet, kasa, member: await memberPda(kasa, wallet.address), amount });
+}
+
+/** Needs no signature beyond the fee payer: anyone may submit it once the contribution is due. */
+export async function pullContributionIx(kasa: Address, kasaData: Kasa, wallet: Address) {
+  return getPullContributionInstruction({
+    kasa,
+    member: await memberPda(kasa, wallet),
+    mint: kasaData.mint,
+    vault: kasaData.vault,
+    from: await ataOf(wallet, kasaData.mint),
   });
 }

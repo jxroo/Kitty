@@ -1,8 +1,10 @@
 // Full kasa lifecycle on devnet against the deployed program, with throwaway wallets.
 //   FUNDER_KEYPAIR=~/funded.json FAUCET_KEYPAIR=~/tpln-mint-authority.json npx tsx scripts/e2e-devnet.ts
-// Anna founds a kasa, Bartek borrows with Anna and Celina as guarantors, pays one
-// installment, then stops paying: the rest is collected from collateral by other
-// people's transactions. Rule-breaking attempts are shown being rejected.
+// Anna founds a kasa and sets a standing contribution; Bartek borrows with Anna and
+// Celina as guarantors and gives a direct-debit mandate. A bot with no rights pulls
+// the contribution and installment 1 from their wallets; then Bartek revokes the
+// mandate and the rest is collected from collateral. Rule-breaking attempts are
+// shown being rejected.
 // Writes explorer links to ../../docs/devnet-e2e.md.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -23,6 +25,7 @@ import { getCreateAssociatedTokenIdempotentInstruction, getMintToCheckedInstruct
 import { fetchKasa, fetchLoan, fetchMember, type Kasa } from "../src/generated";
 import { fetchTokenBalance } from "../src/lib/chain";
 import {
+  approveMandateIx,
   ataOf,
   collectOverdueIx,
   createKasaIxs,
@@ -32,8 +35,11 @@ import {
   joinIx,
   loanPda,
   memberPda,
-  repayIx,
+  pullContributionIx,
+  pullInstallmentIx,
   requestLoanIx,
+  revokeMandateIx,
+  setContributionIx,
   withdrawIxs,
 } from "../src/lib/instructions";
 import { describeError, explorerAddress, explorerTx, formatZl, MINT, PROGRAM_ID, randomId, RPC_URL } from "../src/lib/kasa";
@@ -45,6 +51,7 @@ const transactionConfig = { version: 0 } as const;
 const expand = (p: string) => p.replace(/^~/, homedir());
 const funderPath = expand(process.env.FUNDER_KEYPAIR ?? "~/Downloads/projekt2-keypair.json");
 const faucetPath = expand(process.env.FAUCET_KEYPAIR ?? "~/Downloads/kasa-faucet-keypair.json");
+const botPath = expand(process.env.CRANK_KEYPAIR ?? "~/crank-keypair.json");
 const zl = (x: number) => BigInt(Math.round(x * 100));
 
 const log: string[] = [];
@@ -118,11 +125,13 @@ async function main() {
   }
   await sendWithFallback(rpc, () => funderClient.sendTransaction(topUps));
   const [annaC, bartekC, celinaC] = await Promise.all([clientFor(anna), clientFor(bartek), clientFor(celina)]);
+  const bot = await createKeyPairSignerFromBytes(Uint8Array.from(JSON.parse(readFileSync(botPath, "utf8"))));
+  const botC = await clientFor(bot);
 
   report(`# Devnet end-to-end run (${new Date().toISOString()})`);
   report("");
   report(`Program: [\`${PROGRAM_ID}\`](${explorerAddress(PROGRAM_ID)}) · test złoty mint: [\`${MINT}\`](${explorerAddress(MINT)})  `);
-  report(`Anna \`${anna.address}\` · Bartek \`${bartek.address}\` · Celina \`${celina.address}\`  `);
+  report(`Anna \`${anna.address}\` · Bartek \`${bartek.address}\` · Celina \`${celina.address}\` · bot (fee payer, no rights) \`${bot.address}\`  `);
   report(`Installments every ${PERIOD} s with ${GRACE} s grace, so the whole default path fits in a few minutes.`);
   report("");
   report("| Step | Transaction |");
@@ -147,6 +156,16 @@ async function main() {
   await step(bartekC, "Bartek deposits 500 zł", [await depositIx(bartek, kasa, k, zl(500))]);
   await step(celinaC, "Celina deposits 1000 zł", [await depositIx(celina, kasa, k, zl(1_000))]);
 
+  // Standing order without a bank: Anna saves 100 zł every period, pulled by the bot.
+  await step(annaC, "Anna sets a standing contribution of 100 zł per period and gives her kasa a 300 zł mandate (SPL approve)", [
+    await setContributionIx(anna, kasa, zl(100)),
+    await approveMandateIx(anna, kasa, MINT, zl(300)),
+  ]);
+  await step(botC, "The bot (a key with no rights, it only pays fees) pulls Anna's contribution into her savings", [
+    await pullContributionIx(kasa, k, anna.address),
+  ]);
+  await rejected(botC, "The bot tries to pull the contribution again in the same period", [await pullContributionIx(kasa, k, anna.address)]);
+
   await rejected(bartekC, "Bartek asks for 1001 zł (limit is 2 × 500 zł)", [await requestLoanIx(bartek, kasa, 0, zl(1_001), 4)]);
   await step(bartekC, "Bartek asks for 1000 zł in 4 installments: his 500 zł of savings get locked as collateral", [
     await requestLoanIx(bartek, kasa, 0, zl(1_000), 4),
@@ -161,34 +180,47 @@ async function main() {
 
   l = (await fetchLoan(rpc, loanAddr)).data;
   const before = await fetchTokenBalance(rpc, await ataOf(bartek.address, MINT));
-  await step(bartekC, "Bartek pays the loan out to his own wallet. No board, no approval.", await disburseIxs(bartek, loanAddr, l, k));
+  await step(
+    bartekC,
+    "Bartek pays the loan out to his own wallet and, in the same transaction, gives a 1000 zł direct-debit mandate. No board, no approval.",
+    await disburseIxs(bartek, loanAddr, l, k, { mandate: true })
+  );
   const after = await fetchTokenBalance(rpc, await ataOf(bartek.address, MINT));
   report(`| ↳ Bartek's wallet: ${formatZl(before)} → ${formatZl(after)} | |`);
 
+  // Installment 1 falls due: nobody clicks anything, the bot pulls it from Bartek's wallet.
   l = (await fetchLoan(rpc, loanAddr)).data;
-  await step(bartekC, "Bartek repays installment 1 (250 zł): guarantors get 250 zł unlocked, 3:2", [await repayIx(bartek, loanAddr, l, k, zl(250))]);
-  l = (await fetchLoan(rpc, loanAddr)).data;
-  await rejected(celinaC, "Celina tries to collect before anything is overdue", [await collectOverdueIx(loanAddr, l)]);
-
-  // Bartek goes silent. Wait for installment 2 (+ grace) and let Celina collect it.
-  const due2 = Number(l.disbursedAt) + 2 * PERIOD + GRACE + 2;
-  await waitUntil(rpc, due2);
-  l = (await fetchLoan(rpc, loanAddr)).data;
-  await step(celinaC, "Bartek misses installment 2: Celina (anyone) collects it from Bartek's locked savings", [
-    await collectOverdueIx(loanAddr, l),
+  await rejected(botC, "The bot tries to pull installment 1 before its due date", [await pullInstallmentIx(loanAddr, l, k)]);
+  await waitUntil(rpc, Number(l.disbursedAt) + PERIOD + 1);
+  await step(botC, "Installment 1 is due: the bot pulls 250 zł from Bartek's wallet (Bartek signs nothing); guarantors get 250 zł unlocked, 3:2", [
+    await pullInstallmentIx(loanAddr, l, k),
   ]);
+  report(`| ↳ Bartek's wallet: ${formatZl(after)} → ${formatZl(await fetchTokenBalance(rpc, await ataOf(bartek.address, MINT)))} | |`);
+  l = (await fetchLoan(rpc, loanAddr)).data;
+  await rejected(botC, "The bot tries to pull more than is due", [await pullInstallmentIx(loanAddr, l, k)]);
+
+  // Bartek stops paying: he cancels the mandate. The fund never depended on it.
+  await step(bartekC, "Bartek revokes the mandate (SPL revoke): he stops paying", [await revokeMandateIx(bartek, MINT)]);
+  await waitUntil(rpc, Number(l.disbursedAt) + 2 * PERIOD + 1);
+  l = (await fetchLoan(rpc, loanAddr)).data;
+  await rejected(botC, "Installment 2 is due: the bot tries to pull it, but there is no mandate any more", [
+    await pullInstallmentIx(loanAddr, l, k),
+  ]);
+  await waitUntil(rpc, Number(l.disbursedAt) + 2 * PERIOD + GRACE + 2);
+  l = (await fetchLoan(rpc, loanAddr)).data;
+  await step(botC, "Grace is over: the bot collects installment 2 from Bartek's locked savings", [await collectOverdueIx(loanAddr, l)]);
 
   const due4 = Number(l.disbursedAt) + 4 * PERIOD + GRACE + 2;
   await waitUntil(rpc, due4);
   l = (await fetchLoan(rpc, loanAddr)).data;
-  await step(annaC, "Installments 3–4 overdue: Bartek's last 250 zł, then 250 zł from guarantors pro rata", [
+  await step(celinaC, "Installments 3–4 overdue: Celina (anyone) collects Bartek's last 250 zł, then 250 zł from guarantors pro rata", [
     await collectOverdueIx(loanAddr, l),
   ]);
 
   l = (await fetchLoan(rpc, loanAddr)).data;
   k = (await fetchKasa(rpc, kasa)).data;
   report("");
-  report(`Loan status: **${["Pending", "Active", "Repaid", "Cancelled"][l.status]}** · repaid by Bartek ${formatZl(l.repaid)} · taken from collateral ${formatZl(l.seized)} (Bartek ${formatZl(l.ownSeized)}, guarantors ${l.guarantors
+  report(`Loan status: **${["Pending", "Active", "Repaid", "Cancelled"][l.status]}** · repaid ${formatZl(l.repaid)} (of which pulled by mandate ${formatZl(l.autopaid)}) · taken from collateral ${formatZl(l.seized)} (Bartek ${formatZl(l.ownSeized)}, guarantors ${l.guarantors
     .slice(0, l.guarantorCount)
     .map((g) => `${names.get(g.wallet)} ${formatZl(g.seized)}`)
     .join(", ")})`);

@@ -1,6 +1,7 @@
 // Reads every account of the program in one call. The chain is the only database:
 // there is no backend that stores kasas, members or loans.
-import { getBase64Encoder, type Address, type Rpc, type SolanaRpcApi } from "@solana/kit";
+import { getBase64Encoder, isSome, type Address, type Rpc, type SolanaRpcApi } from "@solana/kit";
+import { fetchMaybeToken } from "@solana-program/token";
 import {
   getKasaDecoder,
   getLoanDecoder,
@@ -13,6 +14,7 @@ import {
   type Loan,
   type Member,
 } from "../generated";
+import type { WalletToken } from "./kasa";
 
 export type WithAddress<T> = { address: Address; data: T };
 
@@ -60,5 +62,17 @@ export async function fetchTokenBalance(rpc: Rpc<SolanaRpcApi>, tokenAccount: Ad
     return BigInt(value.amount);
   } catch {
     return 0n; // account does not exist yet
+  }
+}
+
+/** Balance and direct-debit mandate (SPL delegate + allowance) of a token account; null if it does not exist. */
+export async function fetchWalletToken(rpc: Rpc<SolanaRpcApi>, tokenAccount: Address): Promise<WalletToken | null> {
+  try {
+    const account = await fetchMaybeToken(rpc, tokenAccount, { commitment: "confirmed" });
+    if (!account.exists) return null;
+    const { amount, delegate, delegatedAmount } = account.data;
+    return { amount, delegate: isSome(delegate) ? delegate.value : null, delegatedAmount };
+  } catch {
+    return null;
   }
 }

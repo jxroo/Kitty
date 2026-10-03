@@ -67,6 +67,10 @@ export type Member = {
   totalDeposited: bigint;
   /** Savings taken to cover overdue installments (own loans or guaranteed ones). */
   totalSeized: bigint;
+  /** Standing order: amount pulled into savings once per kasa period (0 = none). */
+  contribution: bigint;
+  /** When the next standing-order contribution may be pulled. */
+  nextContributionAt: bigint;
   joinedAt: bigint;
   displayName: string;
   bump: number;
@@ -83,6 +87,10 @@ export type MemberArgs = {
   totalDeposited: number | bigint;
   /** Savings taken to cover overdue installments (own loans or guaranteed ones). */
   totalSeized: number | bigint;
+  /** Standing order: amount pulled into savings once per kasa period (0 = none). */
+  contribution: number | bigint;
+  /** When the next standing-order contribution may be pulled. */
+  nextContributionAt: number | bigint;
   joinedAt: number | bigint;
   displayName: string;
   bump: number;
@@ -101,6 +109,8 @@ export function getMemberEncoder(): Encoder<MemberArgs> {
       ["openLoans", getU8Encoder()],
       ["totalDeposited", getU64Encoder()],
       ["totalSeized", getU64Encoder()],
+      ["contribution", getU64Encoder()],
+      ["nextContributionAt", getI64Encoder()],
       ["joinedAt", getI64Encoder()],
       ["displayName", addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
       ["bump", getU8Encoder()],
@@ -121,6 +131,8 @@ export function getMemberDecoder(): Decoder<Member> {
     ["openLoans", getU8Decoder()],
     ["totalDeposited", getU64Decoder()],
     ["totalSeized", getU64Decoder()],
+    ["contribution", getU64Decoder()],
+    ["nextContributionAt", getI64Decoder()],
     ["joinedAt", getI64Decoder()],
     ["displayName", addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
     ["bump", getU8Decoder()],

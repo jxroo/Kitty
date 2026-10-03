@@ -28,6 +28,9 @@ export enum ActivityKind {
   Repaid,
   OverdueCollected,
   LoanClosed,
+  InstallmentPulled,
+  ContributionSet,
+  ContributionPulled,
 }
 
 export type ActivityKindArgs = ActivityKind;

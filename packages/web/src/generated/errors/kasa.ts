@@ -60,11 +60,24 @@ export const KASA_ERROR__GUARANTOR_ACCOUNT_MISMATCH = 0x1784; // 6020
 export const KASA_ERROR__WRONG_KASA = 0x1785; // 6021
 /** MathOverflow: Arithmetic overflow */
 export const KASA_ERROR__MATH_OVERFLOW = 0x1786; // 6022
+/** InstallmentNotDue: No installment is due yet */
+export const KASA_ERROR__INSTALLMENT_NOT_DUE = 0x1787; // 6023
+/** NoMandate: No direct-debit mandate (allowance) or no funds to pull */
+export const KASA_ERROR__NO_MANDATE = 0x1788; // 6024
+/** WrongPayerAccount: Token account does not belong to the member who owes */
+export const KASA_ERROR__WRONG_PAYER_ACCOUNT = 0x1789; // 6025
+/** ContributionNotSet: No standing contribution is set */
+export const KASA_ERROR__CONTRIBUTION_NOT_SET = 0x178a; // 6026
+/** ContributionNotDue: The next contribution is not due yet */
+export const KASA_ERROR__CONTRIBUTION_NOT_DUE = 0x178b; // 6027
 
 export type KasaError =
   | typeof KASA_ERROR__CANNOT_GUARANTEE_OWN_LOAN
   | typeof KASA_ERROR__COLLATERAL_INCOMPLETE
+  | typeof KASA_ERROR__CONTRIBUTION_NOT_DUE
+  | typeof KASA_ERROR__CONTRIBUTION_NOT_SET
   | typeof KASA_ERROR__GUARANTOR_ACCOUNT_MISMATCH
+  | typeof KASA_ERROR__INSTALLMENT_NOT_DUE
   | typeof KASA_ERROR__INSUFFICIENT_FREE_SAVINGS
   | typeof KASA_ERROR__INVALID_DISPLAY_NAME
   | typeof KASA_ERROR__INVALID_GRACE
@@ -76,6 +89,7 @@ export type KasaError =
   | typeof KASA_ERROR__LOAN_NOT_ACTIVE
   | typeof KASA_ERROR__LOAN_NOT_PENDING
   | typeof KASA_ERROR__MATH_OVERFLOW
+  | typeof KASA_ERROR__NO_MANDATE
   | typeof KASA_ERROR__NOT_A_GUARANTOR
   | typeof KASA_ERROR__NOT_BORROWER
   | typeof KASA_ERROR__NOTHING_OVERDUE
@@ -84,6 +98,7 @@ export type KasaError =
   | typeof KASA_ERROR__REPAY_EXCEEDS_OUTSTANDING
   | typeof KASA_ERROR__TOO_MANY_GUARANTORS
   | typeof KASA_ERROR__WRONG_KASA
+  | typeof KASA_ERROR__WRONG_PAYER_ACCOUNT
   | typeof KASA_ERROR__ZERO_AMOUNT;
 
 let kasaErrorMessages: Record<KasaError, string> | undefined;
@@ -91,7 +106,10 @@ if (process.env["NODE_ENV"] !== "production") {
   kasaErrorMessages = {
     [KASA_ERROR__CANNOT_GUARANTEE_OWN_LOAN]: `A borrower cannot guarantee their own loan`,
     [KASA_ERROR__COLLATERAL_INCOMPLETE]: `Loan is not fully covered by locked savings yet`,
+    [KASA_ERROR__CONTRIBUTION_NOT_DUE]: `The next contribution is not due yet`,
+    [KASA_ERROR__CONTRIBUTION_NOT_SET]: `No standing contribution is set`,
     [KASA_ERROR__GUARANTOR_ACCOUNT_MISMATCH]: `Guarantor accounts do not match the loan`,
+    [KASA_ERROR__INSTALLMENT_NOT_DUE]: `No installment is due yet`,
     [KASA_ERROR__INSUFFICIENT_FREE_SAVINGS]: `Not enough free (unlocked) savings`,
     [KASA_ERROR__INVALID_DISPLAY_NAME]: `Display name must be 1-24 bytes`,
     [KASA_ERROR__INVALID_GRACE]: `Grace period is too long`,
@@ -103,6 +121,7 @@ if (process.env["NODE_ENV"] !== "production") {
     [KASA_ERROR__LOAN_NOT_ACTIVE]: `Loan is not active`,
     [KASA_ERROR__LOAN_NOT_PENDING]: `Loan is not waiting for guarantors`,
     [KASA_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
+    [KASA_ERROR__NO_MANDATE]: `No direct-debit mandate (allowance) or no funds to pull`,
     [KASA_ERROR__NOT_A_GUARANTOR]: `Signer is not a guarantor of this loan`,
     [KASA_ERROR__NOT_BORROWER]: `Only the borrower can do this`,
     [KASA_ERROR__NOTHING_OVERDUE]: `No installment is overdue yet`,
@@ -111,6 +130,7 @@ if (process.env["NODE_ENV"] !== "production") {
     [KASA_ERROR__REPAY_EXCEEDS_OUTSTANDING]: `Repayment exceeds what is still owed`,
     [KASA_ERROR__TOO_MANY_GUARANTORS]: `This loan already has the maximum number of guarantors`,
     [KASA_ERROR__WRONG_KASA]: `Account belongs to a different kasa`,
+    [KASA_ERROR__WRONG_PAYER_ACCOUNT]: `Token account does not belong to the member who owes`,
     [KASA_ERROR__ZERO_AMOUNT]: `Amount must be greater than zero`,
   };
 }

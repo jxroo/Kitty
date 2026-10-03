@@ -78,6 +78,8 @@ export type Loan = {
   repaid: bigint;
   /** Taken from collateral because installments were overdue. */
   seized: bigint;
+  /** Part of `repaid` pulled from the borrower's wallet under their direct-debit mandate. */
+  autopaid: bigint;
   /** Borrower's own savings still locked for this loan. */
   ownCollateral: bigint;
   ownSeized: bigint;
@@ -100,6 +102,8 @@ export type LoanArgs = {
   repaid: number | bigint;
   /** Taken from collateral because installments were overdue. */
   seized: number | bigint;
+  /** Part of `repaid` pulled from the borrower's wallet under their direct-debit mandate. */
+  autopaid: number | bigint;
   /** Borrower's own savings still locked for this loan. */
   ownCollateral: number | bigint;
   ownSeized: number | bigint;
@@ -124,6 +128,7 @@ export function getLoanEncoder(): FixedSizeEncoder<LoanArgs> {
       ["closedAt", getI64Encoder()],
       ["repaid", getU64Encoder()],
       ["seized", getU64Encoder()],
+      ["autopaid", getU64Encoder()],
       ["ownCollateral", getU64Encoder()],
       ["ownSeized", getU64Encoder()],
       ["guarantorCount", getU8Encoder()],
@@ -149,6 +154,7 @@ export function getLoanDecoder(): FixedSizeDecoder<Loan> {
     ["closedAt", getI64Decoder()],
     ["repaid", getU64Decoder()],
     ["seized", getU64Decoder()],
+    ["autopaid", getU64Decoder()],
     ["ownCollateral", getU64Decoder()],
     ["ownSeized", getU64Decoder()],
     ["guarantorCount", getU8Decoder()],
@@ -216,5 +222,5 @@ export async function fetchAllMaybeLoan(
 }
 
 export function getLoanSize(): number {
-  return 288;
+  return 296;
 }
