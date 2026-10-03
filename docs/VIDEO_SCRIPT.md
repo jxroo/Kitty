@@ -14,7 +14,7 @@ Record with QuickTime (File → New Screen Recording) at 1080p, browser zoom 110
 | 1:35–1:50 | Bartek: **Wypłać pożyczkę na mój portfel**, wallet +1000 zł | "And he pays it out himself. No board." |
 | 1:50–2:20 | Switch to the prepared kasa: installment 2 turns "zaległa", Celina presses **Egzekwuj zaległą ratę**; schedule shows "pobrana z zabezpieczeń" | "Here Bartek stopped paying. Once the installment is overdue, anyone can press this button. The program takes the installment from his locked savings, and when those run out, from the guarantors. No payroll, no debt collector, nobody's consent. This is the moment the intermediary disappears." |
 | 2:20–2:35 | Vault card "1750 zł = oszczędności − pożyczone ✓"; Anna **Wypłać** free savings | "Every loan is fully covered, so the vault always holds everyone's free savings. Anna takes hers out right now, without asking anyone." |
-| 2:35–2:50 | **Gdzie znika pośrednik?** tab, code links | "Every rule is in one small Anchor program on devnet: open source, no admin key, and we can't change it." |
+| 2:35–2:50 | **Gdzie znika pośrednik?** tab, code links | "Every rule is in one small Anchor program on devnet: open source, no admin key, no instruction that lets us touch anyone's savings." |
 | 2:50–3:00 | Slide 10 | "Next: automatic installments through token delegation, grants by member vote, a złoty stablecoin. Kasa bez zarządu." |
 
 Tip: if a transaction is slow on camera, cut the wait in editing; don't fake anything. Every step above is a real devnet transaction.

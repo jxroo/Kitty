@@ -39,7 +39,7 @@ const ROLES: { today: string; now: React.ReactNode; code: React.ReactNode }[] = 
   },
   {
     today: "Regulamin może zmienić walne zebranie lub zarząd",
-    now: "Zasady zapisane przy założeniu kasy. Nie ma instrukcji, która je zmienia, a program jest niezmienialny.",
+    now: "Zasady zapisane przy założeniu kasy. Nie ma instrukcji, która je zmienia, ani klucza admina.",
     code: <Code path="instructions/create_kasa.rs" line={40}>create_kasa.rs</Code>,
   },
 ];
@@ -58,7 +58,7 @@ export function HowItWorks() {
         </p>
         <p className="text-sm text-slate-700 leading-relaxed mt-2">
           W <strong>Kasie bez zarządu</strong> te role przejmuje program na Solanie. Strona A (pożyczkobiorca) nie musi ufać stronie B
-          (poręczycielom i reszcie kasy), bo obie polegają na regule, której nikt nie obejdzie, łącznie z nami, autorami.
+          (poręczycielom i reszcie kasy), bo obie polegają na regule zapisanej w programie, której żadna instrukcja nie pozwala obejść – także nam, autorom.
         </p>
       </Card>
 
@@ -122,9 +122,14 @@ export function HowItWorks() {
             <tr><td className="text-slate-600 pr-3">Wypłacić pożyczkę / anulować wniosek</td><td className="text-slate-900">Tylko pożyczkobiorca</td></tr>
             <tr><td className="text-slate-600 pr-3">Spłacić</td><td className="text-slate-900">Każdy (także za kogoś)</td></tr>
             <tr><td className="text-slate-600 pr-3">Egzekwować zaległą ratę</td><td className="text-slate-900">Każdy, po terminie + karencji</td></tr>
-            <tr><td className="text-slate-600 pr-3">Zmienić zasady, zamrozić lub przelać cudze środki</td><td className="text-slate-900 font-semibold">Nikt, łącznie z nami</td></tr>
+            <tr><td className="text-slate-600 pr-3">Zmienić zasady, zamrozić lub przelać cudze środki</td><td className="text-slate-900 font-semibold">Żadna instrukcja na to nie pozwala, także nam</td></tr>
           </tbody>
         </table>
+        <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 mt-3">
+          Uczciwie: na devnecie kod programu może jeszcze zaktualizować klucz autorów (upgrade authority). Trzymamy go na czas
+          hackathonu, żeby móc poprawiać błędy. Przed prawdziwymi pieniędzmi trafi do multisiga przedstawicieli członków albo
+          zostanie usunięty na zawsze.
+        </p>
         <p className="text-[11px] text-slate-500 mt-3">
           Program: <AddressLink address={PROGRAM_ID} /> ·{" "}
           <a href={REPO_URL} target="_blank" rel="noreferrer" className="text-sky-700 hover:underline">

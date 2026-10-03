@@ -89,9 +89,9 @@ All in `packages/contracts/programs/kasa/src/`:
 | Pay out / cancel a pending loan | The borrower only | `has_one = borrower` |
 | Repay | Anyone (also on someone's behalf) | `repay` |
 | Collect an overdue installment | **Anyone**, after due date + grace | `collect_overdue` (no signer needed) |
-| Change rules, freeze or move someone's savings | **Nobody, including us** | No such instruction exists |
+| Change rules, freeze or move someone's savings | **Nobody, through any instruction (including us)** | No such instruction exists; see the upgrade-key caveat below |
 
-**Can we, as authors, change anything after deployment?** The program has no admin key and no instruction that touches funds or rules outside the logic above. Its upgrade authority is the deploy key until the final check of the submission; then it is set to `none` (`solana program set-upgrade-authority --final`), which anyone can verify with `solana program show EEUFKgMU7hWUbAiGYTZEHvrXEzfnoE4qKkyS7sa4vEp2 --url devnet`.
+**Can we, as authors, change anything after deployment?** Not through the program: it has no admin key and no instruction that touches funds or rules outside the logic above, so we cannot edit a kasa's rules or move anyone's savings. One trust point remains, and we state it plainly: on devnet the program's **upgrade authority is still our deploy key** (`DhFgUwnupHZphYhJ2qWmD7zfjNE2p8zyRDqFiXo2AxXw`), so we could deploy different code. We keep it during the hackathon to be able to fix bugs. Before real money it would go to a multisig of member representatives, or be removed for good with `solana program set-upgrade-authority --final`. Anyone can check the current state with `solana program show EEUFKgMU7hWUbAiGYTZEHvrXEzfnoE4qKkyS7sa4vEp2 --url devnet`.
 
 ## Why blockchain and not a regular database?
 
@@ -175,6 +175,7 @@ npx tsx scripts/burners.ts fund && node scripts/ui-e2e.mjs https://web-productio
 - **Savings earn nothing**, as in a KZP (0% loans). Idle funds could be put to work, but that would add a counterparty.
 - **Legal wrapper.** The Act on benefit-loan funds expects a statute, a board and an audit committee. The program can be the "engine" of such a fund; a fully board-less KZP would need the law to recognise it.
 - **Clock.** Deadlines use the cluster clock, which on devnet runs a few seconds behind wall time; the UI uses the chain's clock for countdowns.
+- **Upgrade key.** The program is still upgradeable by our deploy key (see "Can we change anything"). That is the one place where users must trust us today.
 - **Not audited. Devnet only.** The RPC key in the public bundle is a free devnet key.
 
 ## If we had another week
@@ -183,7 +184,7 @@ npx tsx scripts/burners.ts fund && node scripts/ui-e2e.mjs https://web-productio
 2. **Zapomogi** (grants) from a common fund, released by a member vote with a quorum fixed at creation.
 3. A PLN stablecoin and a BLIK on-ramp; passkey wallets so a school KZP can use it without crypto knowledge.
 4. A free public "collector" bot and notifications (email/push) before an installment is due.
-5. Verifiable build and an audit; then mainnet.
+5. Hand the upgrade authority to a members' multisig (or remove it), verifiable build and an audit; then mainnet.
 
 ## Stack
 

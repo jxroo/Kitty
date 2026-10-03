@@ -28,7 +28,7 @@
 
 ## Short description (one paragraph)
 
-Kasa bez zarządu is a *kasa zapomogowo-pożyczkowa* (a workplace or group savings and loan fund) where a Solana program replaces the board, the treasurer and the payroll deduction. Members' savings sit in a vault owned by the program, not in a treasurer's account. Anyone can borrow up to a multiple of their savings at 0%, with no approval: the loan pays out once locked savings, their own plus pledges from co-members who vouch for them, cover 100% of it. If an installment is late, anyone can trigger its collection from that collateral, with nobody's consent. Because every loan is fully covered, the vault always holds everyone's free savings and anyone can withdraw theirs at any moment. Nobody, including the founder and the authors, can change the rules or move someone else's money.
+Kasa bez zarządu is a *kasa zapomogowo-pożyczkowa* (a workplace or group savings and loan fund) where a Solana program replaces the board, the treasurer and the payroll deduction. Members' savings sit in a vault owned by the program, not in a treasurer's account. Anyone can borrow up to a multiple of their savings at 0%, with no approval: the loan pays out once locked savings, their own plus pledges from co-members who vouch for them, cover 100% of it. If an installment is late, anyone can trigger its collection from that collateral, with nobody's consent. Because every loan is fully covered, the vault always holds everyone's free savings and anyone can withdraw theirs at any moment. No instruction lets anyone, including the founder and the authors, change a kasa's rules or move someone else's money.
 
 ## Detailed description
 
@@ -67,7 +67,7 @@ Small groups in Poland that already pool money: workplace KZPs (schools, public 
 | Loan approval | Board decision | None: 100% collateral from locked savings (own + guarantors) |
 | Enforcement | Payroll deduction, board chasing debtors | `collect_overdue`: after due date + grace, anyone triggers collection from collateral |
 | Getting your savings back | When the board agrees, usually when leaving | Any time for unlocked savings; the vault always holds them |
-| Rule changes | General meeting / board | Impossible: fixed at creation, no admin key |
+| Rule changes | General meeting / board | No instruction changes them; no admin key (caveat: program upgrade key, below) |
 | Who can lose | Every member, if the treasurer or the books fail | Only a guarantor who chose to vouch, capped at the pledge, as a KZP *poręczyciel* today |
 
 ### Why it works without anyone enforcing it
@@ -90,11 +90,11 @@ In a database the intermediary is whoever runs it: they can edit a balance, hold
 
 ### Who has which permissions; can we change anything?
 
-Everyone can create a kasa, join, deposit and withdraw their free savings; members borrow and guarantee within the kasa's limits; only the borrower can pay out or cancel their loan; anyone can repay or collect an overdue installment; **nobody can change the rules or move another member's savings, including us**. The upgrade authority is removed (`--final`) after the final check, which anyone can verify on the explorer.
+Everyone can create a kasa, join, deposit and withdraw their free savings; members borrow and guarantee within the kasa's limits; only the borrower can pay out or cancel their loan; anyone can repay or collect an overdue installment; **no instruction lets anyone change the rules or move another member's savings, including us**. Honest caveat: on devnet the program's upgrade authority is still our deploy key, so we could deploy different code; we keep it during the hackathon for bug fixes, and before real money it goes to a members' multisig or is removed with `--final` (verifiable on the explorer).
 
 ### Limitations we are aware of
 
-Test złoty come from a devnet faucet (the program accepts any SPL mint, production would use a stablecoin); users need a wallet; collection needs someone (or a bot) to send the transaction; contributions are voluntary rather than monthly-mandatory; savings earn no interest, as in a KZP; the Act on benefit-loan funds still expects a board, so a fully board-less KZP needs legal recognition; not audited, devnet only.
+The program is still upgradeable by our key (see above); test złoty come from a devnet faucet (the program accepts any SPL mint, production would use a stablecoin); users need a wallet; collection needs someone (or a bot) to send the transaction; contributions are voluntary rather than monthly-mandatory; savings earn no interest, as in a KZP; the Act on benefit-loan funds still expects a board, so a fully board-less KZP needs legal recognition; not audited, devnet only.
 
 ### If we had another week
 

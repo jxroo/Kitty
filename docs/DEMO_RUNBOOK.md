@@ -25,13 +25,13 @@ Demo: https://web-production-ad49f.up.railway.app · Program: `EEUFKgMU7hWUbAiGY
 | 6 | Bartek | **Wypłać pożyczkę na mój portfel** | „Wypłacam sam. Bez zarządu.” Saldo w nagłówku +1000 zł. |
 | 7 | Celina, kasa B | rata 2 „zaległa – do egzekucji” → **Egzekwuj zaległą ratę** | **Moment kulminacyjny:** „Bartek przestał płacić. Każdy, nawet ja, może teraz kliknąć: rata schodzi z jego zablokowanych oszczędności, potem z poręczeń. Nikt nie musiał nikogo ścigać.” Pokaż tx w eksploratorze. |
 | 8 | Anna, kasa B | karta skarbca „= oszczędności − pożyczone ✓” → **Wypłać** wolne oszczędności | „Każda pożyczka jest w pełni zabezpieczona, więc w skarbcu zawsze są wszystkie wolne oszczędności. Wypłacam swoje teraz, bez pytania kogokolwiek.” |
-| 9 | — | „Gdzie znika pośrednik?” | Tabela ról i linki do kodu. „Program jest niezmienialny, nie mamy klucza admina.” |
+| 9 | — | „Gdzie znika pośrednik?” | Tabela ról i linki do kodu. „Nie ma klucza admina ani instrukcji, która pozwala nam ruszyć cudze oszczędności.” |
 
 ## Pytania jury: krótkie odpowiedzi
 
 - **Gdzie znika pośrednik w kodzie?** `instructions/loan.rs` (wypłata tylko przy 100% zabezpieczenia), `instructions/repay.rs` → `collect_overdue` (egzekucja bez podpisu), `vault.rs` → `pay_out` (jedyna droga wyjścia tokenów).
 - **Ktoś znika w połowie?** Pożyczkobiorca: raty schodzą z zabezpieczeń. Poręczyciel: nic nie musi robić, poręczenie odblokuje się po spłacie. Założyciel / my: bez znaczenia.
-- **Kto może co? Czy możecie coś zmienić?** Nikt nie zmienia zasad ani nie rusza cudzych oszczędności. Upgrade authority = none (do sprawdzenia: `solana program show EEUF… --url devnet`).
+- **Kto może co? Czy możecie coś zmienić?** Żadna instrukcja nie pozwala zmienić zasad ani ruszyć cudzych oszczędności, także nam. Uczciwie: na devnecie upgrade authority to wciąż nasz klucz deployu, więc moglibyśmy wgrać inny kod. Trzymamy go na czas hackathonu do poprawek; przed prawdziwymi pieniędzmi trafia do multisiga członków albo zostaje usunięty (`--final`). Stan do sprawdzenia: `solana program show EEUF… --url devnet`.
 - **Dlaczego blockchain, nie baza?** W bazie pośrednikiem jest ten, kto ją prowadzi. Tak właśnie znikały pieniądze z KZP. Tu saldo to konto programu, zasady to kod, a egzekucję może uruchomić każdy.
 - **Kto traci, gdy ktoś nie spłaca?** Tylko poręczyciel, który sam się na to zgodził, maksymalnie do kwoty poręczenia. Kasa nigdy nie traci.
 - **Co dalej, gdyby był tydzień?** Automatyczne raty przez delegację tokenów SPL („stałe zlecenie bez banku”), zapomogi z głosowaniem, stablecoin w złotówkach, BLIK, passkeys, bot egzekucyjny.

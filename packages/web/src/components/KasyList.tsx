@@ -84,7 +84,7 @@ function Intro() {
       <h1 className="text-xl font-bold tracking-tight">Kasa zapomogowo-pożyczkowa bez zarządu i skarbnika</h1>
       <p className="text-xs text-slate-300 mt-1">
         Dla grup, które już składają się na wspólną kasę: działów w firmach, szkół, znajomych, rodzin. Zasady pilnuje program na
-        Solanie, którego nikt nie może zmienić – także jego autorzy.
+        Solanie bez klucza admina: żadna jego instrukcja nie pozwala nikomu, także autorom, zmienić zasad ani ruszyć cudzych pieniędzy.
       </p>
       <ol className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
         {steps.map((s, i) => (

@@ -75,7 +75,7 @@
 <section class="slide hero">
   <div class="kicker">Superteam Poland · Finance Without Intermediaries · HackYeah 2026</div>
   <h1 style="margin-top:40px">Kasa bez zarządu</h1>
-  <p style="font-size:28px;margin-top:18px;max-width:980px;color:#e2e8f0">A savings and loan fund with <strong>no board and no treasurer</strong>. Members save together and lend each other money at 0%. The rules are a Solana program that nobody can change.</p>
+  <p style="font-size:28px;margin-top:18px;max-width:980px;color:#e2e8f0">A savings and loan fund with <strong>no board and no treasurer</strong>. Members save together and lend each other money at 0%. The rules are a Solana program with no admin key.</p>
   <div class="grid3" style="margin-top:56px">
     <div class="card" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)"><div class="big" style="color:#6ee7b7">0</div><p style="margin-top:8px">people who approve a loan</p></div>
     <div class="card" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)"><div class="big" style="color:#6ee7b7">100%</div><p style="margin-top:8px">of every loan covered by locked savings</p></div>
@@ -123,7 +123,7 @@
       <tr><td>Loan approval</td><td>Board decision</td><td class="good">Nobody: pays out when locked savings (own + guarantors') cover 100%</td></tr>
       <tr><td>Enforcement</td><td>Payroll deduction, board chasing debtors</td><td class="good">After due date + grace, anyone triggers collection from collateral</td></tr>
       <tr><td>Your savings back</td><td>When the board agrees, usually when leaving</td><td class="good">Any time, for unlocked savings</td></tr>
-      <tr><td>Changing rules</td><td>General meeting or board</td><td class="good">Impossible: fixed at creation, no admin key</td></tr>
+      <tr><td>Changing rules</td><td>General meeting or board</td><td class="good">No instruction changes them; no admin key</td></tr>
       <tr><td>Who can lose</td><td>Every member, if the books fail</td><td class="good">Only a guarantor who chose to vouch, capped at the pledge</td></tr>
     </tbody>
   </table>
@@ -228,10 +228,10 @@
           <tr><td>Borrow / guarantee</td><td>Members, within the kasa's limits</td></tr>
           <tr><td>Pay out / cancel a loan</td><td>Only the borrower</td></tr>
           <tr><td>Repay, collect overdue</td><td>Anyone</td></tr>
-          <tr><td>Change rules, move others' savings</td><td class="good">Nobody, including us</td></tr>
+          <tr><td>Change rules, move others' savings</td><td class="good">No instruction allows it, for anyone</td></tr>
         </tbody>
       </table>
-      <p class="small" style="margin-top:10px">No admin key; upgrade authority set to <code>none</code> after the final check.</p>
+      <p class="small" style="margin-top:10px"><strong>Honest caveat:</strong> on devnet our deploy key can still upgrade the program code. Kept for bug fixes during the hackathon; next step: a members' multisig, or remove it with <code>--final</code>.</p>
     </div>
   </div>
   <div class="footer"><span>Kasa bez zarządu</span><span>7 / 10</span></div>
@@ -285,6 +285,7 @@
         <li>Collection needs someone (or a bot) to send the transaction</li>
         <li>Contributions are voluntary, savings earn no interest (as in a KZP)</li>
         <li>The 2021 Act still expects a board; legal recognition needed</li>
+        <li>Program still upgradeable by our deploy key</li>
         <li>Not audited, devnet only</li>
       </ul>
     </div>
@@ -295,7 +296,7 @@
         <li><em>Zapomogi</em>: grants released by member vote</li>
         <li>PLN stablecoin, BLIK on-ramp, passkey wallets</li>
         <li>Public collector bot and due-date reminders</li>
-        <li>Verifiable build, audit, mainnet</li>
+        <li>Upgrade key to a members' multisig, audit, mainnet</li>
       </ul>
     </div>
   </div>

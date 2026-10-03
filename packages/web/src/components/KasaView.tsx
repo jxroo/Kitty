@@ -124,7 +124,7 @@ function RulesCard({ kasa }: { kasa: WithAddress<Kasa> }) {
         <dd className="font-semibold text-slate-900">nikt – wystarczą poręczenia</dd>
       </dl>
       <p className="text-[11px] text-slate-500 mt-3">
-        Program nie ma instrukcji, która zmienia te zasady, a jego kod jest niezmienialny. Nie ma klucza admina ani zarządu.
+        Program nie ma instrukcji, która zmienia te zasady, ani klucza admina czy zarządu. (Na devnecie kod programu może jeszcze zaktualizować klucz autorów – szczegóły w zakładce „Gdzie znika pośrednik?”.)
       </p>
     </Card>
   );
