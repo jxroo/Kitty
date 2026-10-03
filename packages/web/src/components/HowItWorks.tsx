@@ -97,7 +97,7 @@ export function HowItWorks() {
               Dlatego zawsze: <strong>skarbiec = oszczędności − pożyczone</strong>, a wolne oszczędności każdego członka zawsze
               leżą w skarbcu. Testy sprawdzają to po każdym kroku, łącznie z „runem na kasę”.
             </li>
-            <li>Ryzyko ponosi tylko poręczyciel, który sam na nie się zgodził – jak żyrant w KZP.</li>
+            <li>Ryzyko ponosi tylko poręczyciel, który sam się na nie zgodził – jak żyrant w KZP.</li>
           </ul>
         </Card>
         <Card>
