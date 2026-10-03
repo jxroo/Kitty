@@ -1,0 +1,19 @@
+# deps / builds
+node_modules/
+.next/
+out/
+target/
+test-ledger/
+.surfpool/
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets: never commit keypairs or env files
+*-keypair.json
+id.json
+.env*
+!.env.example
+
+# os
+.DS_Store
+.e2e-wallets.json
