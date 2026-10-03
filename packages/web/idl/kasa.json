@@ -1,0 +1,1456 @@
+{
+  "address": "EEUFKgMU7hWUbAiGYTZEHvrXEzfnoE4qKkyS7sa4vEp2",
+  "metadata": {
+    "name": "kasa",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Kasa bez zarządu: a savings and loan fund with no board, enforced on Solana"
+  },
+  "docs": [
+    "Kasa bez zarządu: a workplace-style savings and loan fund (KZP) with no board",
+    "and no treasurer. Members' money sits in a vault owned by this program, loans",
+    "are paid out only when locked savings cover them in full, and overdue",
+    "installments are collected from that collateral by anyone. There is no admin",
+    "key and no instruction that lets the founder or the authors move funds."
+  ],
+  "instructions": [
+    {
+      "name": "cancel_loan",
+      "discriminator": [
+        214,
+        125,
+        161,
+        106,
+        51,
+        186,
+        69,
+        148
+      ],
+      "accounts": [
+        {
+          "name": "borrower",
+          "signer": true,
+          "relations": [
+            "loan"
+          ]
+        },
+        {
+          "name": "kasa",
+          "relations": [
+            "loan"
+          ]
+        },
+        {
+          "name": "loan",
+          "writable": true
+        },
+        {
+          "name": "borrower_member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "borrower"
+              }
+            ]
+          }
+        },
+        {
+          "name": "guarantor0",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "guarantor1",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "guarantor2",
+          "writable": true,
+          "optional": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "collect_overdue",
+      "discriminator": [
+        45,
+        18,
+        232,
+        13,
+        83,
+        208,
+        46,
+        194
+      ],
+      "accounts": [
+        {
+          "name": "kasa",
+          "writable": true,
+          "relations": [
+            "loan"
+          ]
+        },
+        {
+          "name": "loan",
+          "writable": true
+        },
+        {
+          "name": "borrower_member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "loan.borrower",
+                "account": "Loan"
+              }
+            ]
+          }
+        },
+        {
+          "name": "guarantor0",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "guarantor1",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "guarantor2",
+          "writable": true,
+          "optional": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_kasa",
+      "discriminator": [
+        55,
+        121,
+        189,
+        157,
+        24,
+        210,
+        160,
+        91
+      ],
+      "accounts": [
+        {
+          "name": "founder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "kasa",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  97,
+                  115,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "founder"
+              },
+              {
+                "kind": "arg",
+                "path": "kasa_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "kasa_id",
+          "type": "u64"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "loan_multiplier_bps",
+          "type": "u16"
+        },
+        {
+          "name": "max_installments",
+          "type": "u8"
+        },
+        {
+          "name": "period_secs",
+          "type": "u32"
+        },
+        {
+          "name": "grace_secs",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "deposit",
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "wallet",
+          "signer": true
+        },
+        {
+          "name": "kasa",
+          "writable": true
+        },
+        {
+          "name": "member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "wallet"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "from",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "disburse",
+      "discriminator": [
+        68,
+        250,
+        205,
+        89,
+        217,
+        142,
+        13,
+        44
+      ],
+      "accounts": [
+        {
+          "name": "borrower",
+          "signer": true,
+          "relations": [
+            "loan"
+          ]
+        },
+        {
+          "name": "kasa",
+          "writable": true,
+          "relations": [
+            "loan"
+          ]
+        },
+        {
+          "name": "loan",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "to",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "guarantee",
+      "discriminator": [
+        13,
+        140,
+        241,
+        147,
+        79,
+        41,
+        240,
+        59
+      ],
+      "accounts": [
+        {
+          "name": "guarantor",
+          "signer": true
+        },
+        {
+          "name": "kasa",
+          "relations": [
+            "loan"
+          ]
+        },
+        {
+          "name": "loan",
+          "writable": true
+        },
+        {
+          "name": "guarantor_member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "guarantor"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "join",
+      "discriminator": [
+        206,
+        55,
+        2,
+        106,
+        113,
+        220,
+        17,
+        163
+      ],
+      "accounts": [
+        {
+          "name": "wallet",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "kasa",
+          "writable": true
+        },
+        {
+          "name": "member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "wallet"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "display_name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "repay",
+      "discriminator": [
+        234,
+        103,
+        67,
+        82,
+        208,
+        234,
+        219,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "Usually the borrower, but anyone may pay a loan off on their behalf."
+          ],
+          "signer": true
+        },
+        {
+          "name": "kasa",
+          "writable": true,
+          "relations": [
+            "loan"
+          ]
+        },
+        {
+          "name": "loan",
+          "writable": true
+        },
+        {
+          "name": "borrower_member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "loan.borrower",
+                "account": "Loan"
+              }
+            ]
+          }
+        },
+        {
+          "name": "guarantor0",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "guarantor1",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "guarantor2",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "from",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "request_loan",
+      "discriminator": [
+        120,
+        2,
+        7,
+        7,
+        1,
+        219,
+        235,
+        187
+      ],
+      "accounts": [
+        {
+          "name": "borrower",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "kasa",
+          "writable": true
+        },
+        {
+          "name": "borrower_member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "borrower"
+              }
+            ]
+          }
+        },
+        {
+          "name": "loan",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  111,
+                  97,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "borrower"
+              },
+              {
+                "kind": "account",
+                "path": "borrower_member.loan_count",
+                "account": "Member"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "installments",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "withdraw",
+      "discriminator": [
+        183,
+        18,
+        70,
+        156,
+        148,
+        109,
+        161,
+        34
+      ],
+      "accounts": [
+        {
+          "name": "wallet",
+          "signer": true
+        },
+        {
+          "name": "kasa",
+          "writable": true
+        },
+        {
+          "name": "member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "wallet"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "relations": [
+            "kasa"
+          ]
+        },
+        {
+          "name": "to",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_guarantee",
+      "discriminator": [
+        90,
+        175,
+        173,
+        229,
+        183,
+        148,
+        41,
+        242
+      ],
+      "accounts": [
+        {
+          "name": "guarantor",
+          "signer": true
+        },
+        {
+          "name": "kasa",
+          "relations": [
+            "loan"
+          ]
+        },
+        {
+          "name": "loan",
+          "writable": true
+        },
+        {
+          "name": "guarantor_member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kasa"
+              },
+              {
+                "kind": "account",
+                "path": "guarantor"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Kasa",
+      "discriminator": [
+        83,
+        201,
+        141,
+        65,
+        100,
+        90,
+        186,
+        152
+      ]
+    },
+    {
+      "name": "Loan",
+      "discriminator": [
+        20,
+        195,
+        70,
+        117,
+        165,
+        227,
+        182,
+        1
+      ]
+    },
+    {
+      "name": "Member",
+      "discriminator": [
+        54,
+        19,
+        162,
+        21,
+        29,
+        166,
+        17,
+        198
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "Activity",
+      "discriminator": [
+        89,
+        164,
+        105,
+        7,
+        102,
+        24,
+        171,
+        187
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidName",
+      "msg": "Name must be 1-40 bytes"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidDisplayName",
+      "msg": "Display name must be 1-24 bytes"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidMultiplier",
+      "msg": "Loan multiple must be between 1x and 5x savings"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidInstallments",
+      "msg": "Number of installments is out of range"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidPeriod",
+      "msg": "Installment period must be between 30 s and 90 days"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidGrace",
+      "msg": "Grace period is too long"
+    },
+    {
+      "code": 6006,
+      "name": "ZeroAmount",
+      "msg": "Amount must be greater than zero"
+    },
+    {
+      "code": 6007,
+      "name": "InsufficientFreeSavings",
+      "msg": "Not enough free (unlocked) savings"
+    },
+    {
+      "code": 6008,
+      "name": "LoanLimitExceeded",
+      "msg": "Loan exceeds the multiple of your savings allowed by this kasa"
+    },
+    {
+      "code": 6009,
+      "name": "OpenLoanExists",
+      "msg": "You already have an open loan in this kasa"
+    },
+    {
+      "code": 6010,
+      "name": "LoanNotPending",
+      "msg": "Loan is not waiting for guarantors"
+    },
+    {
+      "code": 6011,
+      "name": "LoanNotActive",
+      "msg": "Loan is not active"
+    },
+    {
+      "code": 6012,
+      "name": "NotBorrower",
+      "msg": "Only the borrower can do this"
+    },
+    {
+      "code": 6013,
+      "name": "CannotGuaranteeOwnLoan",
+      "msg": "A borrower cannot guarantee their own loan"
+    },
+    {
+      "code": 6014,
+      "name": "TooManyGuarantors",
+      "msg": "This loan already has the maximum number of guarantors"
+    },
+    {
+      "code": 6015,
+      "name": "OverCollateralized",
+      "msg": "Pledge exceeds the part of the loan that is still uncovered"
+    },
+    {
+      "code": 6016,
+      "name": "NotAGuarantor",
+      "msg": "Signer is not a guarantor of this loan"
+    },
+    {
+      "code": 6017,
+      "name": "CollateralIncomplete",
+      "msg": "Loan is not fully covered by locked savings yet"
+    },
+    {
+      "code": 6018,
+      "name": "RepayExceedsOutstanding",
+      "msg": "Repayment exceeds what is still owed"
+    },
+    {
+      "code": 6019,
+      "name": "NothingOverdue",
+      "msg": "No installment is overdue yet"
+    },
+    {
+      "code": 6020,
+      "name": "GuarantorAccountMismatch",
+      "msg": "Guarantor accounts do not match the loan"
+    },
+    {
+      "code": 6021,
+      "name": "WrongKasa",
+      "msg": "Account belongs to a different kasa"
+    },
+    {
+      "code": 6022,
+      "name": "MathOverflow",
+      "msg": "Arithmetic overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "Activity",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "kasa",
+            "type": "pubkey"
+          },
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "loan",
+            "docs": [
+              "`Pubkey::default()` when the action is not about a loan."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "kind",
+            "type": {
+              "defined": {
+                "name": "ActivityKind"
+              }
+            }
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ActivityKind",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "KasaCreated"
+          },
+          {
+            "name": "Joined"
+          },
+          {
+            "name": "Deposited"
+          },
+          {
+            "name": "Withdrew"
+          },
+          {
+            "name": "LoanRequested"
+          },
+          {
+            "name": "Guaranteed"
+          },
+          {
+            "name": "GuaranteeWithdrawn"
+          },
+          {
+            "name": "LoanCancelled"
+          },
+          {
+            "name": "Disbursed"
+          },
+          {
+            "name": "Repaid"
+          },
+          {
+            "name": "OverdueCollected"
+          },
+          {
+            "name": "LoanClosed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Kasa",
+      "docs": [
+        "One savings and loan fund. Its rules are fixed at creation: there is no",
+        "instruction that edits them and the founder keeps no special rights."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "founder",
+            "type": "pubkey"
+          },
+          {
+            "name": "kasa_id",
+            "type": "u64"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "docs": [
+              "Token account owned by this PDA. Members' money lives here, not with a treasurer."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "loan_multiplier_bps",
+            "docs": [
+              "Max loan = savings * multiplier / 10_000."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "max_installments",
+            "type": "u8"
+          },
+          {
+            "name": "period_secs",
+            "type": "u32"
+          },
+          {
+            "name": "grace_secs",
+            "type": "u32"
+          },
+          {
+            "name": "total_savings",
+            "docs": [
+              "Sum of all members' savings."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_outstanding",
+            "docs": [
+              "Sum of what disbursed loans still owe. Always `vault balance == total_savings - total_outstanding`."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "member_count",
+            "type": "u32"
+          },
+          {
+            "name": "loan_count",
+            "type": "u32"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Loan",
+      "docs": [
+        "A loan from the fund. It can only be paid out when locked savings",
+        "(borrower's own + guarantors') cover 100% of it, so the fund can never lose."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "kasa",
+            "type": "pubkey"
+          },
+          {
+            "name": "borrower",
+            "type": "pubkey"
+          },
+          {
+            "name": "index",
+            "type": "u32"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "installments",
+            "type": "u8"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "LoanStatus"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "disbursed_at",
+            "type": "i64"
+          },
+          {
+            "name": "closed_at",
+            "type": "i64"
+          },
+          {
+            "name": "repaid",
+            "docs": [
+              "Paid back by the borrower (or anyone on their behalf)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "seized",
+            "docs": [
+              "Taken from collateral because installments were overdue."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "own_collateral",
+            "docs": [
+              "Borrower's own savings still locked for this loan."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "own_seized",
+            "type": "u64"
+          },
+          {
+            "name": "guarantor_count",
+            "type": "u8"
+          },
+          {
+            "name": "guarantors",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "Pledge"
+                  }
+                },
+                3
+              ]
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LoanStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Repaid"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Member",
+      "docs": [
+        "A member's share of the fund. `locked` is the part pledged as collateral",
+        "(for their own loan or as a guarantor) and cannot be withdrawn."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "kasa",
+            "type": "pubkey"
+          },
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "savings",
+            "type": "u64"
+          },
+          {
+            "name": "locked",
+            "type": "u64"
+          },
+          {
+            "name": "loan_count",
+            "docs": [
+              "Loans requested so far; also the next loan's PDA index."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "open_loans",
+            "type": "u8"
+          },
+          {
+            "name": "total_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "total_seized",
+            "docs": [
+              "Savings taken to cover overdue installments (own loans or guaranteed ones)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "joined_at",
+            "type": "i64"
+          },
+          {
+            "name": "display_name",
+            "type": "string"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Pledge",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "docs": [
+              "Guarantor savings still locked for this loan."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "seized",
+            "docs": [
+              "Guarantor savings already used to cover overdue installments."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "KASA_SEED",
+      "type": "bytes",
+      "value": "[107, 97, 115, 97]"
+    },
+    {
+      "name": "LOAN_SEED",
+      "type": "bytes",
+      "value": "[108, 111, 97, 110]"
+    },
+    {
+      "name": "MAX_GRACE_SECS",
+      "type": "u32",
+      "value": "2592000"
+    },
+    {
+      "name": "MAX_INSTALLMENTS",
+      "type": "u8",
+      "value": "24"
+    },
+    {
+      "name": "MAX_LOAN_MULTIPLIER_BPS",
+      "type": "u16",
+      "value": "50000"
+    },
+    {
+      "name": "MAX_PERIOD_SECS",
+      "type": "u32",
+      "value": "7776000"
+    },
+    {
+      "name": "MEMBER_SEED",
+      "type": "bytes",
+      "value": "[109, 101, 109, 98, 101, 114]"
+    },
+    {
+      "name": "MIN_LOAN_MULTIPLIER_BPS",
+      "docs": [
+        "A loan can be 1x to 5x the borrower's savings; the founder picks the multiple once, forever."
+      ],
+      "type": "u16",
+      "value": "10000"
+    },
+    {
+      "name": "MIN_PERIOD_SECS",
+      "docs": [
+        "30 s minimum keeps the overdue path demoable live; 90 days is a sane ceiling for one installment."
+      ],
+      "type": "u32",
+      "value": "30"
+    },
+    {
+      "name": "VAULT_SEED",
+      "type": "bytes",
+      "value": "[118, 97, 117, 108, 116]"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+.e2e-wallets.json
+.env*
+node_modules
+.next
