@@ -152,6 +152,13 @@ export const LOAN_STATUS_LABEL: Record<LoanStatus, string> = {
   [LoanStatus.Cancelled]: "Anulowana",
 };
 
+/** "1 rata", "2–4 raty", "5 rat" (and 12–14 rat), as Polish counts them. */
+export function plural(n: number, one: string, few: string, many: string) {
+  if (n === 1) return one;
+  const tens = n % 100;
+  return n % 10 >= 2 && n % 10 <= 4 && (tens < 12 || tens > 14) ? few : many;
+}
+
 export function randomId(): bigint {
   const bytes = crypto.getRandomValues(new Uint8Array(8));
   return new DataView(bytes.buffer).getBigUint64(0, true);

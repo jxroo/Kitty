@@ -14,6 +14,7 @@ import {
   outstanding,
   overdueNow,
   parseZl,
+  plural,
   schedule,
   shortAddress,
 } from "@/lib/kasa";
@@ -50,7 +51,7 @@ export function LoanCard({ loan, kasa, names, me }: Props) {
             {isBorrower && <span className="text-emerald-700 text-xs font-semibold"> (Twoja)</span>}
           </div>
           <div className="text-[11px] text-slate-500">
-            {l.installments} {l.installments === 1 ? "rata" : "rat"} po ok. {formatZl(l.amount / BigInt(l.installments))} · co{" "}
+            {l.installments} {plural(l.installments, "rata", "raty", "rat")} po ok. {formatZl(l.amount / BigInt(l.installments))} · co{" "}
             {formatDuration(kasa.data.periodSecs)} · <AddressLink address={loan.address} label="konto pożyczki" />
           </div>
         </div>
@@ -265,7 +266,7 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
             <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden />
             <span>
               Zaległe <strong>{formatZl(overdue)}</strong>. Program pozwala <strong>każdemu</strong> ściągnąć tę kwotę z zabezpieczeń:
-              najpierw z oszczędności {name(l.borrower)}, potem proporcjonalnie z poręczeń. Bez zarządu, windykacji i niczyjej zgody.
+              najpierw z oszczędności pożyczkobiorcy ({name(l.borrower)}), potem proporcjonalnie z poręczeń. Bez zarządu, windykacji i niczyjej zgody.
             </span>
           </p>
           <Button variant="warning" onClick={collect} disabled={!!busy || !wallet}>

@@ -1,4 +1,4 @@
-// Drives the real UI against devnet with an injected Wallet Standard test wallet per role.
+// Drives the real UI against devnet with an injected Wallet Standard test wallet per member.
 // Usage: npx playwright install chromium && node scripts/ui-e2e.mjs <baseUrl> .e2e-wallets.json <screenshotDir>
 // (fund the test wallets first: npx tsx scripts/burners.ts fund)
 import { readFileSync, mkdirSync } from "node:fs";
@@ -8,8 +8,8 @@ import nacl from "tweetnacl";
 const [base = "http://localhost:3100", walletsFile, shots] = process.argv.slice(2);
 mkdirSync(shots, { recursive: true });
 const keys = JSON.parse(readFileSync(walletsFile, "utf8")).map((a) => Uint8Array.from(a));
-const ROLES = ["seller", "buyer", "arbiter"];
-const NAMES = { seller: "Test Sprzedawca", buyer: "Test Kupujący", arbiter: "Test Arbiter" };
+const ROLES = ["anna", "bartek", "celina"];
+const NAMES = { anna: "Portfel Anny", bartek: "Portfel Bartka", celina: "Portfel Celiny" };
 
 const B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 function b58(bytes) {
@@ -89,10 +89,11 @@ function walletScript(name, address, publicKey) {
 }
 
 const browser = await chromium.launch();
-const pages = {};
 const errors = [];
-for (const [i, role] of ROLES.entries()) {
-  const secret = keys[i];
+const T = 120_000;
+
+async function openAs(role, url) {
+  const secret = keys[ROLES.indexOf(role)];
   const ctx = await browser.newContext({ viewport: { width: 1360, height: 1000 }, deviceScaleFactor: 2 });
   await ctx.exposeFunction("__burnerSign", (kind, bytes) =>
     kind === "tx" ? signWireTx(bytes, secret) : Array.from(nacl.sign.detached(Uint8Array.from(bytes), secret))
@@ -101,90 +102,101 @@ for (const [i, role] of ROLES.entries()) {
   const page = await ctx.newPage();
   page.on("console", (m) => m.type() === "error" && errors.push(`[${role}] ${m.text()}`));
   page.on("pageerror", (e) => errors.push(`[${role}] pageerror ${e.message}`));
-  await page.goto(base);
+  await page.goto(url);
   await page.getByRole("button", { name: "Połącz portfel" }).click();
   await page.getByRole("button", { name: NAMES[role] }).click();
   await page.waitForSelector("text=SOL", { timeout: 20000 });
-  pages[role] = page;
   console.log(`${role} connected as ${b58(secret.slice(32))}`);
+  return page;
 }
-const T = 120_000;
-const tab = (p, name) => p.getByRole("button", { name }).click();
+
 const refresh = (p) => p.locator('button[title="Odśwież stan z łańcucha"]').click();
 const shot = (p, name) => p.screenshot({ path: `${shots}/${name}.png`, fullPage: true });
-async function lastActivity(p, pattern) {
-  await p.waitForSelector(`li:has-text("${pattern}")`, { timeout: T });
+
+/** Clicks, then waits for the activity feed to report success (or throws with the program's message). */
+async function act(p, click) {
+  const count = (mark) => p.locator(`li:has-text("${mark}")`).count();
+  const [ok, bad] = [await count("✅"), await count("⚠️")];
+  await click();
+  await p.waitForFunction(
+    ([ok, bad]) => {
+      const items = [...document.querySelectorAll("li")];
+      return items.filter((li) => li.textContent.includes("✅")).length > ok || items.filter((li) => li.textContent.includes("⚠️")).length > bad;
+    },
+    [ok, bad],
+    { timeout: T }
+  );
+  if ((await count("⚠️")) > bad) throw new Error(await p.locator('li:has-text("⚠️")').first().textContent());
 }
 
-const { seller, buyer, arbiter } = pages;
-const arbiterAddress = b58(keys[2].slice(32));
-const title = `Sony WH-1000XM5 UI test ${Date.now() % 10000}`;
+const name = `Kasa Działu IT ${Date.now() % 10000}`;
 
-// 1. Seller lists an item
-await tab(seller, "4. Wystaw przedmiot");
-await seller.locator('label:has-text("Tytuł") + input').fill(title);
-await seller.locator('label:has-text("Cena") + input').fill("0.02");
-await seller.getByPlaceholder("Adres portfela arbitra").fill(arbiterAddress);
-await shot(seller, "01-create-form");
-await seller.getByRole("button", { name: "Wystaw na łańcuchu" }).click();
-await seller.waitForSelector("text=Oferta jest na łańcuchu", { timeout: T });
-await shot(seller, "02-created-share");
-console.log("1. listed");
+// 1. Anna founds a kasa (demo schedule: installment every 60 s, 15 s grace) and saves 1000 zł.
+const anna = await openAs("anna", base);
+await anna.waitForSelector("text=Czytam kasy", { state: "detached", timeout: T });
+await shot(anna, "01-kasy-list");
+await anna.fill("#kasa-name", name);
+await anna.fill("#kasa-me", "Anna");
+await shot(anna, "02-create-form");
+await act(anna, () => anna.getByRole("button", { name: "Załóż kasę i dołącz" }).click());
+await anna.waitForSelector(`h1:has-text("${name}")`, { timeout: T });
+const kasaUrl = anna.url();
+await anna.fill("#dep", "1000");
+await act(anna, () => anna.getByRole("button", { name: "Wpłać", exact: true }).click());
+console.log("1. kasa created", kasaUrl);
 
-// 2. Buyer buys from the post
-await refresh(buyer);
-await buyer.getByRole("button", { name: title.slice(0, 28) }).click().catch(() => {});
-await buyer.waitForSelector(`text=${title}`, { timeout: T });
-await shot(buyer, "03-feed-blink");
-await buyer.getByRole("button", { name: /Kup i zablokuj/ }).click();
-await buyer.waitForSelector("text=Jesteś kupującym", { timeout: T });
-await buyer.waitForSelector("text=Opłacone", { timeout: T });
-await shot(buyer, "04-buyer-funded");
-console.log("2. bought");
+// 2. Bartek joins from the invite link, saves 500 zł and asks for 1000 zł in 4 installments.
+const bartek = await openAs("bartek", kasaUrl);
+await bartek.getByLabel("Twoje imię w kasie").fill("Bartek");
+await act(bartek, () => bartek.getByRole("button", { name: "Dołącz", exact: true }).click());
+await bartek.waitForSelector("#dep", { timeout: T });
+await bartek.fill("#dep", "500");
+await act(bartek, () => bartek.getByRole("button", { name: "Wpłać", exact: true }).click());
+await bartek.fill("#loan-amount", "1000");
+await bartek.selectOption("#loan-inst", "4");
+await act(bartek, () => bartek.getByRole("button", { name: "Złóż wniosek" }).click());
+await bartek.waitForSelector("text=Czeka na poręczenia", { timeout: T });
+await shot(bartek, "03-loan-requested");
+console.log("2. loan requested");
 
-// 3. Seller: decrypt address, try to steal (rejected), mark shipped
-await tab(seller, "2. Moje transakcje");
-await refresh(seller);
-await seller.waitForSelector("text=Opłacone", { timeout: T });
-await seller.getByRole("button", { name: /Odszyfruj adres/ }).click();
-await seller.waitForSelector("text=Paczkomat KRA01M", { timeout: T });
-await seller.getByRole("button", { name: /Spróbuj wypłacić sobie/ }).click();
-await lastActivity(seller, "tylko kupujący może zwolnić");
-await shot(seller, "05-seller-rule-rejected");
-await seller.getByRole("button", { name: "Wysłane", exact: true }).click();
-await seller.waitForSelector("text=Wysłane – czeka", { timeout: T });
-console.log("3. decrypted, theft rejected, shipped");
+// 3. Anna pledges 300 zł, Celina joins and pledges 200 zł.
+await refresh(anna);
+await anna.waitForSelector('[aria-label="Kwota poręczenia w zł"]', { timeout: T });
+await anna.getByLabel("Kwota poręczenia w zł").fill("300");
+await act(anna, () => anna.getByRole("button", { name: "Poręczam" }).click());
+const celina = await openAs("celina", kasaUrl);
+await celina.getByLabel("Twoje imię w kasie").fill("Celina");
+await act(celina, () => celina.getByRole("button", { name: "Dołącz", exact: true }).click());
+await celina.waitForSelector("#dep", { timeout: T });
+await celina.fill("#dep", "1000");
+await act(celina, () => celina.getByRole("button", { name: "Wpłać", exact: true }).click());
+await celina.getByLabel("Kwota poręczenia w zł").fill("200");
+await act(celina, () => celina.getByRole("button", { name: "Poręczam" }).click());
+console.log("3. guaranteed");
 
-// 4. Buyer opens a dispute
-await tab(buyer, "2. Moje transakcje");
-await refresh(buyer);
-await buyer.waitForSelector("text=Wysłane – czeka", { timeout: T });
-await buyer.getByPlaceholder(/Opisz problem/).fill("Lewy przetwornik ANC nie działa, pęknięty pałąk");
-await buyer.getByRole("button", { name: "Spór", exact: true }).click();
-await buyer.waitForSelector("text=Spór – decyduje arbiter", { timeout: T });
-console.log("4. disputed");
+// 4. Bartek pays the loan out (no approval) and repays installment 1.
+await refresh(bartek);
+await bartek.waitForSelector("text=Zabezpieczona w 100%", { timeout: T });
+await shot(bartek, "04-loan-covered");
+await act(bartek, () => bartek.getByRole("button", { name: "Wypłać pożyczkę na mój portfel" }).click());
+await bartek.waitForSelector("text=Spłacana", { timeout: T });
+await act(bartek, () => bartek.getByRole("button", { name: "Spłać ratę" }).click());
+await shot(bartek, "05-loan-active");
+console.log("4. disbursed and installment 1 repaid");
 
-// 5. Arbiter rules
-await tab(arbiter, "3. Panel arbitra");
-await refresh(arbiter);
-await arbiter.waitForSelector("text=Podpisz werdykt", { timeout: T });
-await shot(arbiter, "06-arbiter-panel");
-await arbiter.getByRole("button", { name: /Podpisz werdykt/ }).click();
-await lastActivity(arbiter, "Werdykt arbitra");
-await arbiter.waitForSelector("text=Spór rozstrzygnięty", { timeout: T });
-await shot(arbiter, "07-arbiter-resolved");
-console.log("5. resolved");
+// 5. Bartek stops paying. After installment 2 + grace, Celina collects it from his savings.
+await refresh(celina);
+await celina.waitForSelector('button:has-text("Egzekwuj zaległą ratę")', { timeout: 240_000 });
+await shot(celina, "06-overdue");
+await act(celina, () => celina.getByRole("button", { name: /Egzekwuj zaległą ratę/ }).click());
+await celina.waitForSelector("text=Pobrane z zabezpieczeń", { timeout: T });
+await shot(celina, "07-collected");
+console.log("5. overdue installment collected by Celina");
 
-// 6. Explainer tab + seller closes the account
-await tab(seller, "Gdzie znika pośrednik?");
-await seller.waitForSelector("text=Upgrade authority", { timeout: T });
-await seller.waitForTimeout(2500);
-await shot(seller, "08-how-it-works");
-await tab(seller, "2. Moje transakcje");
-await refresh(seller);
-await seller.getByRole("button", { name: /Zamknij konto i odzyskaj rent/ }).click();
-await lastActivity(seller, "Zamknięcie konta");
-console.log("6. closed");
+// 6. Explainer.
+await celina.getByRole("button", { name: "Gdzie znika pośrednik?" }).click();
+await celina.waitForSelector("text=Gdzie dokładnie znika pośrednik", { timeout: T });
+await shot(celina, "08-how-it-works");
 
 console.log(errors.length ? `CONSOLE ERRORS:\n${errors.join("\n")}` : "no console errors");
 await browser.close();

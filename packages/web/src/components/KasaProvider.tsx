@@ -140,6 +140,8 @@ function KasaState({ client, children }: { client: AppClient; children: React.Re
       } finally {
         setBusy(null);
         await refresh();
+        // RPC nodes can lag a moment behind the confirmed transaction; read once more shortly after.
+        setTimeout(refresh, 2_500);
       }
     },
     [client, log, refresh]

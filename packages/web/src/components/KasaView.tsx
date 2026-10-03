@@ -38,7 +38,7 @@ export function KasaView({ kasa, onBack }: { kasa: Address; onBack: () => void }
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{k.data.name}</h1>
           <p className="text-xs text-slate-500">
-            Kasa <AddressLink address={kasa} /> · założona przez {names.get(k.data.founder) ?? "członka"} (bez żadnych uprawnień)
+            Kasa <AddressLink address={kasa} /> · założyciel: {names.get(k.data.founder) ?? "członek"} (bez żadnych uprawnień)
           </p>
         </div>
         <ShareButton kasa={kasa} />

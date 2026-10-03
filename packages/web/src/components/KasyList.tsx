@@ -21,6 +21,7 @@ export function KasyList({ onOpen }: { onOpen: (kasa: Address) => void }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <section className="lg:col-span-7 space-y-3" aria-labelledby="kasy-heading">
+        <Intro />
         <h2 id="kasy-heading" className="font-bold text-slate-900 text-sm uppercase tracking-wider">
           Kasy na łańcuchu
         </h2>
@@ -69,6 +70,32 @@ export function KasyList({ onOpen }: { onOpen: (kasa: Address) => void }) {
         )}
       </div>
     </div>
+  );
+}
+
+function Intro() {
+  const steps = [
+    { title: "Odkładacie razem", text: "Oszczędności leżą w skarbcu należącym do programu, nie na koncie skarbnika. Wolne środki wypłacasz, kiedy chcesz." },
+    { title: "Pożyczacie bez odsetek", text: "Do kilku razy więcej niż masz odłożone. Nikt nie zatwierdza: wystarczy, że członkowie poręczą brakującą część." },
+    { title: "Zaległości egzekwuje kod", text: "Nie spłacisz raty – każdy może ją ściągnąć z Twoich zablokowanych oszczędności, a potem z poręczeń. Kasa nigdy nie traci." },
+  ];
+  return (
+    <Card className="bg-slate-900 border-slate-900 text-white">
+      <h1 className="text-xl font-bold tracking-tight">Kasa zapomogowo-pożyczkowa bez zarządu i skarbnika</h1>
+      <p className="text-xs text-slate-300 mt-1">
+        Dla grup, które już składają się na wspólną kasę: działów w firmach, szkół, znajomych, rodzin. Zasady pilnuje program na
+        Solanie, którego nikt nie może zmienić – także jego autorzy.
+      </p>
+      <ol className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+        {steps.map((s, i) => (
+          <li key={s.title} className="bg-white/10 rounded-xl p-3">
+            <div className="text-emerald-300 text-[11px] font-bold">{i + 1}.</div>
+            <div className="text-sm font-semibold">{s.title}</div>
+            <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">{s.text}</p>
+          </li>
+        ))}
+      </ol>
+    </Card>
   );
 }
 
