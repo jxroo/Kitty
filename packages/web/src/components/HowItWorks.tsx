@@ -142,7 +142,7 @@ export function HowItWorks() {
         <h2 className="font-bold text-slate-900 text-sm mb-2">Dlaczego blockchain, a nie zwykła baza danych?</h2>
         <p className="text-xs text-slate-700 leading-relaxed">
           Bo w bazie danych pośrednikiem jest ten, kto ją prowadzi: może zmienić saldo, zatrzymać wypłatę albo „pożyczyć” sobie z
-          kasy. Tu saldo to konto tokenowe programu, zasady to kod, którego nikt nie może podmienić, a każdy członek widzi każdą
+          kasy. Tu saldo to konto tokenowe programu, zasady to publiczny kod, którego żadna instrukcja nie omija, a każdy członek widzi każdą
           operację w czasie rzeczywistym. Egzekucja raty nie potrzebuje zaufanego serwera, bo może ją uruchomić każdy.
         </p>
       </Card>

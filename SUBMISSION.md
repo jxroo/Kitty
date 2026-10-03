@@ -80,7 +80,7 @@ We started with escrow for second-hand trades and dropped it: for physical goods
 
 ### Why blockchain and not a regular database?
 
-In a database the intermediary is whoever runs it: they can edit a balance, hold back a withdrawal or quietly "borrow" from the pot, which is exactly how the cases above happened. Here the balance is a program-owned token account, the rules are code nobody can swap, every member sees every operation in real time, and collecting an overdue installment needs no trusted server because anyone can do it. Solana makes it practical for a monthly 100 zł contribution: sub-second confirmation, a fraction of a cent per transaction.
+In a database the intermediary is whoever runs it: they can edit a balance, hold back a withdrawal or quietly "borrow" from the pot, which is exactly how the cases above happened. Here the balance is a program-owned token account, the rules are public code that no instruction can bypass, every member sees every operation in real time, and collecting an overdue installment needs no trusted server because anyone can do it. Solana makes it practical for a monthly 100 zł contribution: sub-second confirmation, a fraction of a cent per transaction.
 
 ### What happens if someone disappears halfway
 

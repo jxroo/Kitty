@@ -95,7 +95,7 @@ All in `packages/contracts/programs/kasa/src/`:
 
 ## Why blockchain and not a regular database?
 
-In a database the intermediary is whoever runs it: they can change a balance, hold back a withdrawal or "borrow" from the pot, which is exactly what happens in the cases above. Here the balance is a token account owned by the program, the rules are code nobody can swap, every member sees every operation in real time, and collection of an overdue installment needs no trusted server because anyone can trigger it. Solana makes this cheap enough for a monthly 100 zł contribution: a transaction confirms in under a second for a fraction of a cent.
+In a database the intermediary is whoever runs it: they can change a balance, hold back a withdrawal or "borrow" from the pot, which is exactly what happens in the cases above. Here the balance is a token account owned by the program, the rules are public code that no instruction can bypass, every member sees every operation in real time, and collection of an overdue installment needs no trusted server because anyone can trigger it. Solana makes this cheap enough for a monthly 100 zł contribution: a transaction confirms in under a second for a fraction of a cent.
 
 ## Why there is no arbiter (and why we did not build a marketplace)
 
