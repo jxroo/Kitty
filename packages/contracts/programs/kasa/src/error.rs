@@ -48,4 +48,14 @@ pub enum KasaError {
     WrongKasa,
     #[msg("Arithmetic overflow")]
     MathOverflow,
+    #[msg("No installment is due yet")]
+    InstallmentNotDue,
+    #[msg("No direct-debit mandate (allowance) or no funds to pull")]
+    NoMandate,
+    #[msg("Token account does not belong to the member who owes")]
+    WrongPayerAccount,
+    #[msg("No standing contribution is set")]
+    ContributionNotSet,
+    #[msg("The next contribution is not due yet")]
+    ContributionNotDue,
 }

@@ -4,7 +4,10 @@
 use {
     anchor_lang::{
         prelude::{Clock, Pubkey},
-        solana_program::{instruction::Instruction, system_program},
+        solana_program::{
+            instruction::{AccountMeta, Instruction},
+            system_program,
+        },
         AccountDeserialize, InstructionData, ToAccountMetas,
     },
     kasa::{
@@ -373,6 +376,120 @@ impl Env {
         self.collect_overdue_with(loan, slots)
     }
 
+    // ---- direct debit (SPL allowance to the member's PDA) ----
+
+    /// SPL Token `Approve`: `owner` lets `delegate` move up to `amount` from their tPLN account.
+    fn approve(&mut self, owner: &Keypair, delegate: Pubkey, amount: u64) -> Result<(), String> {
+        let mut data = vec![4u8];
+        data.extend_from_slice(&amount.to_le_bytes());
+        let ix = Instruction {
+            program_id: spl_token::ID,
+            accounts: vec![
+                AccountMeta::new(ata(&owner.pubkey(), &self.mint), false),
+                AccountMeta::new_readonly(delegate, false),
+                AccountMeta::new_readonly(owner.pubkey(), true),
+            ],
+            data,
+        };
+        self.send(ix, &[owner])
+    }
+
+    /// The mandate a member gives their own kasa: the delegate is their Member PDA.
+    fn grant_mandate(&mut self, owner: &Keypair, amount: u64) -> Result<(), String> {
+        let member = self.member_pda(&owner.pubkey());
+        self.approve(owner, member, amount)
+    }
+
+    /// SPL Token `Revoke`: the owner cancels the mandate at any time.
+    fn revoke(&mut self, owner: &Keypair) -> Result<(), String> {
+        let ix = Instruction {
+            program_id: spl_token::ID,
+            accounts: vec![
+                AccountMeta::new(ata(&owner.pubkey(), &self.mint), false),
+                AccountMeta::new_readonly(owner.pubkey(), true),
+            ],
+            data: vec![5u8],
+        };
+        self.send(ix, &[owner])
+    }
+
+    /// SPL Token `Transfer` out of a wallet (the borrower spending their money elsewhere).
+    fn spend(&mut self, owner: &Keypair, to: &Pubkey, amount: u64) -> Result<(), String> {
+        let mut data = vec![3u8];
+        data.extend_from_slice(&amount.to_le_bytes());
+        let ix = Instruction {
+            program_id: spl_token::ID,
+            accounts: vec![
+                AccountMeta::new(ata(&owner.pubkey(), &self.mint), false),
+                AccountMeta::new(ata(to, &self.mint), false),
+                AccountMeta::new_readonly(owner.pubkey(), true),
+            ],
+            data,
+        };
+        self.send(ix, &[owner])
+    }
+
+    fn delegated(&self, owner: &Keypair) -> u64 {
+        get_spl_account::<spl_token::state::Account>(&self.svm, &ata(&owner.pubkey(), &self.mint))
+            .unwrap()
+            .delegated_amount
+    }
+
+    /// Submitted with no signer but the relayer: a bot (or anyone) pulls the installment.
+    fn pull_installment_from(&mut self, loan: Pubkey, from: Pubkey) -> Result<(), String> {
+        let [g0, g1, g2] = self.guarantor_slots(&loan);
+        let borrower = self.loan(&loan).borrower;
+        let ix = self.ix(
+            instruction::PullInstallment {},
+            accounts::PullInstallment {
+                kasa: self.kasa,
+                loan,
+                borrower_member: self.member_pda(&borrower),
+                guarantor0: g0,
+                guarantor1: g1,
+                guarantor2: g2,
+                mint: self.mint,
+                vault: self.vault,
+                from,
+                token_program: spl_token::ID,
+            },
+        );
+        self.send(ix, &[])
+    }
+
+    fn pull_installment(&mut self, loan: Pubkey) -> Result<(), String> {
+        let borrower = self.loan(&loan).borrower;
+        self.pull_installment_from(loan, ata(&borrower, &self.mint))
+    }
+
+    fn set_contribution(&mut self, who: &Keypair, amount: u64) -> Result<(), String> {
+        let ix = self.ix(
+            instruction::SetContribution { amount },
+            accounts::SetContribution {
+                wallet: who.pubkey(),
+                kasa: self.kasa,
+                member: self.member_pda(&who.pubkey()),
+            },
+        );
+        self.send(ix, &[who])
+    }
+
+    /// Submitted with no signer but the relayer.
+    fn pull_contribution(&mut self, who: &Pubkey) -> Result<(), String> {
+        let ix = self.ix(
+            instruction::PullContribution {},
+            accounts::PullContribution {
+                kasa: self.kasa,
+                member: self.member_pda(who),
+                mint: self.mint,
+                vault: self.vault,
+                from: ata(who, &self.mint),
+                token_program: spl_token::ID,
+            },
+        );
+        self.send(ix, &[])
+    }
+
     /// Anna 1000 zł, Bartek 500 zł, Celina 1000 zł; Bartek asks for 1000 zł in 4
     /// installments (own 500 locked), Anna pledges 300, Celina 200, paid out.
     fn standard_loan(&mut self) -> Pubkey {
@@ -673,4 +790,198 @@ fn anyone_can_repay_on_behalf_of_the_borrower() {
     assert_eq!(env.loan(&loan).status, LoanStatus::Repaid);
     let [anna, bartek, celina] = env.all();
     env.assert_invariants(&[&anna, &bartek, &celina]);
+}
+
+// ---- direct debit: the payroll deduction without an employer or a bank ----
+
+#[test]
+fn installment_is_pulled_from_the_wallet_by_mandate_without_the_borrower_signing() {
+    let mut env = setup();
+    let loan = env.standard_loan();
+    let [anna, bartek, celina] = env.all();
+    env.grant_mandate(&bartek, zl(1_000)).unwrap();
+    let cash = env.wallet_tokens(&bartek);
+
+    // Not due yet: the mandate cannot be used early.
+    env.warp(PERIOD as i64 - 1);
+    err_contains(env.pull_installment(loan), "InstallmentNotDue");
+
+    // On the due date (no grace needed) anyone pulls installment 1 from Bartek's wallet.
+    env.warp(1);
+    env.pull_installment(loan).unwrap();
+    assert_eq!(env.wallet_tokens(&bartek), cash - zl(250));
+    assert_eq!(env.delegated(&bartek), zl(750));
+    let state = env.loan(&loan);
+    assert_eq!(state.repaid, zl(250));
+    assert_eq!(state.autopaid, zl(250));
+    assert_eq!(state.seized, 0);
+    // Like any repayment it frees collateral, guarantors first, 3:2.
+    assert_eq!(env.member(&anna).locked, zl(150));
+    assert_eq!(env.member(&celina).locked, zl(100));
+    assert_eq!(env.member(&bartek).locked, zl(500));
+    env.assert_invariants(&[&anna, &bartek, &celina]);
+
+    // Nothing more is due, and nothing is left for the debt collector.
+    err_contains(env.pull_installment(loan), "InstallmentNotDue");
+    env.warp(GRACE as i64);
+    err_contains(env.collect_overdue(loan), "NothingOverdue");
+}
+
+#[test]
+fn mandate_takes_only_what_is_due_even_with_a_large_allowance() {
+    let mut env = setup();
+    let loan = env.standard_loan();
+    let bartek = env.bartek.insecure_clone();
+    env.grant_mandate(&bartek, zl(5_000)).unwrap();
+    env.warp(2 * PERIOD as i64);
+    env.pull_installment(loan).unwrap();
+    assert_eq!(env.loan(&loan).repaid, zl(500), "two installments, not the whole allowance");
+    assert_eq!(env.delegated(&bartek), zl(4_500));
+    err_contains(env.pull_installment(loan), "InstallmentNotDue");
+}
+
+#[test]
+fn without_a_mandate_or_after_revoking_it_collateral_covers_the_installment() {
+    let mut env = setup();
+    let loan = env.standard_loan();
+    let [anna, bartek, celina] = env.all();
+    env.warp(PERIOD as i64);
+    err_contains(env.pull_installment(loan), "NoMandate");
+
+    env.grant_mandate(&bartek, zl(1_000)).unwrap();
+    env.revoke(&bartek).unwrap();
+    err_contains(env.pull_installment(loan), "NoMandate");
+
+    // The fund never depended on the mandate: after grace the collateral pays.
+    env.warp(GRACE as i64);
+    env.collect_overdue(loan).unwrap();
+    assert_eq!(env.member(&bartek).savings, zl(250));
+    assert_eq!(env.loan(&loan).autopaid, 0);
+    env.assert_invariants(&[&anna, &bartek, &celina]);
+}
+
+#[test]
+fn mandate_cannot_pull_from_someone_elses_account() {
+    let mut env = setup();
+    let loan = env.standard_loan();
+    let celina = env.celina.insecure_clone();
+    // Even if Celina's account names Bartek's Member PDA as delegate, the
+    // program only ever pulls from the borrower's own account.
+    let bartek_member = env.member_pda(&env.bartek.pubkey());
+    env.approve(&celina, bartek_member, zl(1_000)).unwrap();
+    env.warp(PERIOD as i64);
+    let celina_ata = ata(&celina.pubkey(), &env.mint);
+    err_contains(env.pull_installment_from(loan, celina_ata), "WrongPayerAccount");
+}
+
+#[test]
+fn short_wallet_pays_what_it_has_and_collateral_covers_the_rest() {
+    let mut env = setup();
+    let loan = env.standard_loan();
+    let [anna, bartek, celina] = env.all();
+    let stranger = env.stranger.pubkey();
+    env.grant_mandate(&bartek, zl(1_000)).unwrap();
+    // Bartek spends almost everything; 100 zł is left in his wallet.
+    let cash = env.wallet_tokens(&bartek);
+    env.spend(&bartek, &stranger, cash - zl(100)).unwrap();
+
+    env.warp(PERIOD as i64);
+    env.pull_installment(loan).unwrap();
+    assert_eq!(env.wallet_tokens(&bartek), 0);
+    assert_eq!(env.loan(&loan).repaid, zl(100));
+    err_contains(env.pull_installment(loan), "NoMandate");
+
+    env.warp(GRACE as i64);
+    env.collect_overdue(loan).unwrap();
+    let state = env.loan(&loan);
+    assert_eq!(state.seized, zl(150), "the rest of installment 1 comes from collateral");
+    assert_eq!(state.own_seized, zl(150), "borrower's own savings first");
+    assert_eq!(env.member(&anna).savings, zl(1_000));
+    env.assert_invariants(&[&anna, &bartek, &celina]);
+}
+
+#[test]
+fn loan_repaid_entirely_by_mandate_then_everyone_withdraws_everything() {
+    let mut env = setup();
+    let loan = env.standard_loan();
+    let [anna, bartek, celina] = env.all();
+    env.grant_mandate(&bartek, zl(1_000)).unwrap();
+    for _ in 0..4 {
+        env.warp(PERIOD as i64);
+        env.pull_installment(loan).unwrap();
+        env.assert_invariants(&[&anna, &bartek, &celina]);
+    }
+    let state = env.loan(&loan);
+    assert_eq!(state.status, LoanStatus::Repaid);
+    assert_eq!(state.autopaid, zl(1_000));
+    assert_eq!(state.seized, 0);
+    assert_eq!(env.delegated(&bartek), 0);
+    for m in [&anna, &bartek, &celina] {
+        assert_eq!(env.member(m).locked, 0);
+    }
+    env.withdraw(&anna, zl(1_000)).unwrap();
+    env.withdraw(&bartek, zl(500)).unwrap();
+    env.withdraw(&celina, zl(1_000)).unwrap();
+    assert_eq!(env.tokens(&env.vault), 0);
+    env.assert_invariants(&[&anna, &bartek, &celina]);
+}
+
+// ---- standing order: monthly savings without a bank ----
+
+#[test]
+fn standing_contribution_is_pulled_once_per_period_by_anyone() {
+    let mut env = setup();
+    let [anna, _, _] = env.all();
+    env.join(&anna, "Anna").unwrap();
+    err_contains(env.pull_contribution(&anna.pubkey()), "ContributionNotSet");
+
+    env.set_contribution(&anna, zl(100)).unwrap();
+    assert_eq!(env.member(&anna).contribution, zl(100));
+    err_contains(env.pull_contribution(&anna.pubkey()), "NoMandate");
+
+    env.grant_mandate(&anna, zl(300)).unwrap();
+    let cash = env.wallet_tokens(&anna);
+    env.pull_contribution(&anna.pubkey()).unwrap();
+    assert_eq!(env.member(&anna).savings, zl(100));
+    assert_eq!(env.member(&anna).total_deposited, zl(100));
+    assert_eq!(env.wallet_tokens(&anna), cash - zl(100));
+    err_contains(env.pull_contribution(&anna.pubkey()), "ContributionNotDue");
+
+    env.warp(PERIOD as i64);
+    env.pull_contribution(&anna.pubkey()).unwrap();
+    assert_eq!(env.member(&anna).savings, zl(200));
+
+    // A long pause does not pile up: one contribution, not five.
+    env.warp(5 * PERIOD as i64);
+    env.pull_contribution(&anna.pubkey()).unwrap();
+    assert_eq!(env.member(&anna).savings, zl(300));
+    err_contains(env.pull_contribution(&anna.pubkey()), "ContributionNotDue");
+
+    // The allowance (300 zł) is used up: the mandate is exhausted.
+    env.warp(PERIOD as i64);
+    err_contains(env.pull_contribution(&anna.pubkey()), "NoMandate");
+
+    env.set_contribution(&anna, 0).unwrap();
+    err_contains(env.pull_contribution(&anna.pubkey()), "ContributionNotSet");
+    assert_eq!(env.kasa_state().total_savings, zl(300));
+    env.assert_invariants(&[&anna]);
+}
+
+#[test]
+fn only_the_member_can_set_their_contribution() {
+    let mut env = setup();
+    let [anna, _, _] = env.all();
+    let stranger = env.stranger.insecure_clone();
+    env.join(&anna, "Anna").unwrap();
+    // The stranger signs, but Anna's Member PDA is not derived from the stranger's wallet.
+    let ix = env.ix(
+        instruction::SetContribution { amount: zl(100) },
+        accounts::SetContribution {
+            wallet: stranger.pubkey(),
+            kasa: env.kasa,
+            member: env.member_pda(&anna.pubkey()),
+        },
+    );
+    assert!(env.send(ix, &[&stranger]).is_err());
+    assert_eq!(env.member(&anna).contribution, 0);
 }

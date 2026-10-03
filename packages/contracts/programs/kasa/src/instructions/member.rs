@@ -43,6 +43,8 @@ pub fn handle_join(ctx: Context<Join>, display_name: String) -> Result<()> {
         open_loans: 0,
         total_deposited: 0,
         total_seized: 0,
+        contribution: 0,
+        next_contribution_at: 0,
         joined_at: Clock::get()?.unix_timestamp,
         display_name,
         bump: ctx.bumps.member,

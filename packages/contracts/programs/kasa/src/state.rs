@@ -50,6 +50,10 @@ pub struct Member {
     pub total_deposited: u64,
     /// Savings taken to cover overdue installments (own loans or guaranteed ones).
     pub total_seized: u64,
+    /// Standing order: amount pulled into savings once per kasa period (0 = none).
+    pub contribution: u64,
+    /// When the next standing-order contribution may be pulled.
+    pub next_contribution_at: i64,
     pub joined_at: i64,
     #[max_len(24)]
     pub display_name: String,
@@ -101,6 +105,8 @@ pub struct Loan {
     pub repaid: u64,
     /// Taken from collateral because installments were overdue.
     pub seized: u64,
+    /// Part of `repaid` pulled from the borrower's wallet under their direct-debit mandate.
+    pub autopaid: u64,
     /// Borrower's own savings still locked for this loan.
     pub own_collateral: u64,
     pub own_seized: u64,
@@ -172,6 +178,9 @@ pub enum ActivityKind {
     Repaid,
     OverdueCollected,
     LoanClosed,
+    InstallmentPulled,
+    ContributionSet,
+    ContributionPulled,
 }
 
 #[event]

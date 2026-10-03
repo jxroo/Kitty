@@ -51,16 +51,12 @@ pub fn handle_repay(ctx: Context<Repay>, amount: u64) -> Result<()> {
     pay_in(&a.token_program, &a.from, &a.mint, &a.vault, &a.payer, amount)?;
 
     let a = &mut *ctx.accounts;
-    a.kasa.total_outstanding = a.kasa.total_outstanding.checked_sub(amount).ok_or(KasaError::MathOverflow)?;
-    a.loan.repaid += amount;
-
     let mut guarantors: Guarantors = [
         a.guarantor0.as_deref_mut(),
         a.guarantor1.as_deref_mut(),
         a.guarantor2.as_deref_mut(),
     ];
-    check_guarantors(&a.loan, &guarantors)?;
-    release_excess(&mut a.loan, &mut a.borrower_member, &mut guarantors)?;
+    book_repayment(&mut a.kasa, &mut a.loan, &mut a.borrower_member, &mut guarantors, amount)?;
 
     emit!(Activity {
         kasa: a.kasa.key(),
@@ -125,7 +121,22 @@ pub fn handle_collect_overdue(ctx: Context<CollectOverdue>) -> Result<()> {
     close_if_settled(&mut a.loan, &mut a.borrower_member)
 }
 
-fn close_if_settled(loan: &mut Account<Loan>, borrower: &mut Member) -> Result<()> {
+/// Books `amount` that has already arrived in the vault as a repayment: the debt
+/// shrinks and the same amount of collateral is released, guarantors first.
+pub fn book_repayment(
+    kasa: &mut Kasa,
+    loan: &mut Loan,
+    borrower: &mut Member,
+    guarantors: &mut Guarantors,
+    amount: u64,
+) -> Result<()> {
+    kasa.total_outstanding = kasa.total_outstanding.checked_sub(amount).ok_or(KasaError::MathOverflow)?;
+    loan.repaid += amount;
+    check_guarantors(loan, guarantors)?;
+    release_excess(loan, borrower, guarantors)
+}
+
+pub fn close_if_settled(loan: &mut Account<Loan>, borrower: &mut Member) -> Result<()> {
     if loan.outstanding() > 0 {
         return Ok(());
     }

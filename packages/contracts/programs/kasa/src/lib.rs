@@ -12,7 +12,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("EEUFKgMU7hWUbAiGYTZEHvrXEzfnoE4qKkyS7sa4vEp2");
+declare_id!("2GCG5LMn8WNcgaZ2aWHCzzDW6hjkTCtYVRzykwsj7pcR");
 
 /// Kasa bez zarządu: a workplace-style savings and loan fund (KZP) with no board
 /// and no treasurer. Members' money sits in a vault owned by this program, loans
@@ -81,5 +81,17 @@ pub mod kasa {
 
     pub fn collect_overdue(ctx: Context<CollectOverdue>) -> Result<()> {
         instructions::repay::handle_collect_overdue(ctx)
+    }
+
+    pub fn pull_installment(ctx: Context<PullInstallment>) -> Result<()> {
+        instructions::autopay::handle_pull_installment(ctx)
+    }
+
+    pub fn set_contribution(ctx: Context<SetContribution>, amount: u64) -> Result<()> {
+        instructions::autopay::handle_set_contribution(ctx, amount)
+    }
+
+    pub fn pull_contribution(ctx: Context<PullContribution>) -> Result<()> {
+        instructions::autopay::handle_pull_contribution(ctx)
     }
 }

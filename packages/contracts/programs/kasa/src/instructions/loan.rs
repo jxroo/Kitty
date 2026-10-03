@@ -75,6 +75,7 @@ pub fn handle_request_loan(ctx: Context<RequestLoan>, amount: u64, installments:
         closed_at: 0,
         repaid: 0,
         seized: 0,
+        autopaid: 0,
         own_collateral: own,
         own_seized: 0,
         guarantor_count: 0,
