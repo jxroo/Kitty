@@ -24,14 +24,14 @@ Demo: https://web-production-ad49f.up.railway.app · Program: `2GCG5LMn8WNcgaZ2a
 | Krok | Konto | Co klikasz | Co mówisz |
 |---|---|---|---|
 | 1 | Anna | **Załóż kasę i dołącz** (Demo, 2×) | „Zasady zapisują się w programie raz na zawsze. Jako założycielka nie mam żadnych uprawnień.” |
-| 2 | Anna | **Wpłać** 1000 → **Ustaw składkę** 100 zł | „Pieniądze są na koncie programu, nie u skarbnika. A to stałe zlecenie bez banku: jedna zgoda SPL, składka schodzi z portfela co okres.” |
-| 3 | Bartek | link z zaproszeniem → **Dołącz**, **Wpłać** 500, **Złóż wniosek** 1000 / 4 raty | „Nikt nie zatwierdza ani członków, ani pożyczek. Moje 500 zł blokuje się jako zabezpieczenie. Brakuje połowy.” |
+| 2 | Anna | **Wpłać** 1000 → **Włącz stałą składkę** 100 zł | „Pieniądze są na koncie programu, nie u skarbnika. A to stałe zlecenie bez banku: jedna zgoda SPL, składka schodzi z portfela co okres.” |
+| 3 | Bartek | link z zaproszeniem → **Dołącz**, **Wpłać** 500, **Poproś o pożyczkę** 1000 / 4 raty | „Nikt nie zatwierdza ani członków, ani pożyczek. Moje 500 zł blokuje się jako zabezpieczenie. Brakuje połowy.” |
 | 4 | Anna, Celina | historia Bartka nad pożyczką → **Poręczam** 300 i 200 | „Zanim poręczę, widzę historię Bartka z całej sieci kas, prosto z łańcucha. To zamiast BIK.” |
-| 5 | Bartek | **Wypłać pożyczkę na mój portfel** (polecenie zapłaty zaznaczone) | „Wypłacam sam, bez zarządu. W tej samej transakcji daję zgodę na pobieranie rat: to polecenie zapłaty bez banku i bez pracodawcy.” |
-| 6 | — | **kasa B**: rata 1 „wymagalna – pobierana z portfela” → za kilka sekund „spłacona”, „Z polecenia zapłaty: 250 zł”; tx w eksploratorze | **Moment kulminacyjny:** „Nikt nic nie klika. W dniu terminu bot – klucz bez żadnych uprawnień – wysyła transakcję, a program bierze z portfela Bartka dokładnie wymagalną ratę. Bartek niczego nie podpisuje. W eksploratorze: podpisał tylko bot, przelew autoryzuje PDA Bartka w tej kasie.” |
-| 7 | — | kasa B: Bartek cofnął zgodę → rata 2 „pobrana z zabezpieczeń” | „Bartek cofnął zgodę i przestał płacić. Kasa nigdy na tej zgodzie nie polegała: po karencji bot ściąga ratę z jego zablokowanych oszczędności, potem z poręczeń. Bez windykacji i niczyjej zgody.” |
-| 8 | Anna | karta skarbca „= oszczędności − pożyczone ✓” → **Wypłać** wolne oszczędności; strona główna: „Sieć kas” | „W skarbcu zawsze leżą wszystkie wolne oszczędności. Wypłacam swoje teraz, bez pytania kogokolwiek. A tu suma całej sieci kas, z kont programu.” |
-| 9 | — | „Gdzie znika pośrednik?” | Tabela: skarbnik, zarząd, pracodawca i bank → instrukcje programu, linki do kodu. „Nie ma klucza admina ani instrukcji, która pozwala nam ruszyć cudze oszczędności.” |
+| 5 | Bartek | **Wypłać pożyczkę na mój portfel** („Spłacaj raty automatycznie” zaznaczone) | „Wypłacam sam, bez zarządu. W tej samej transakcji daję zgodę na pobieranie rat: to polecenie zapłaty bez banku i bez pracodawcy.” |
+| 6 | — | **kasa B**: rata 1 „termin minął – pobieram z portfela” → za kilka sekund „spłacona”, „Spłacone automatycznie: 250 zł”; w **Historii kasy** wiersz „Rata pobrana automatycznie z portfela · automat” → link do tx w eksploratorze | **Moment kulminacyjny:** „Nikt nic nie klika. W dniu terminu bot – klucz bez żadnych uprawnień – wysyła transakcję, a program bierze z portfela Bartka dokładnie wymagalną ratę. Bartek niczego nie podpisuje. W eksploratorze: podpisał tylko bot, przelew autoryzuje PDA Bartka w tej kasie.” |
+| 7 | — | kasa B: Bartek wyłączył automatyczną spłatę → rata 2 „pokryta z oszczędności”; w historii „Niezapłacona rata pokryta z zablokowanych oszczędności · pieniądze nie wychodzą z kasy” | „Bartek cofnął zgodę i przestał płacić. Kasa nigdy na tej zgodzie nie polegała: po karencji bot ściąga ratę z jego zablokowanych oszczędności, potem z poręczeń. Bez windykacji i niczyjej zgody.” |
+| 8 | Anna | „Historia kasy”: „Jest w kasie … ✓ zgadza się z historią” → karta „Pieniądze kasy” → **Wypłać** wolne pieniądze; strona główna: „Wszystkie kasy razem” | „Każdy grosz, który wszedł i wyszedł, z saldem po każdej operacji – prosto z łańcucha, nikt tego nie poprawi. W kasie zawsze leżą wszystkie wolne pieniądze. Wypłacam swoje teraz, bez pytania kogokolwiek.” |
+| 9 | — | „Gdzie znika pośrednik?” → „Jak to działa – w 5 zdaniach”, tabela „Dziś → u nas”, rozwiń „Dla jury i programistów” | Linki do kodu i tabela uprawnień. „Nie ma klucza admina ani instrukcji, która pozwala nam ruszyć cudze oszczędności.” |
 
 ## Pytania jury: krótkie odpowiedzi
 
@@ -46,7 +46,7 @@ Demo: https://web-production-ad49f.up.railway.app · Program: `2GCG5LMn8WNcgaZ2a
 
 ## Jeśli coś się wysypie
 
-- **Bot nie pobiera raty**: sprawdź logi `automat` na Railway; awaryjnie kliknij w kasie **„Pobierz ratę z polecenia zapłaty”** (to ta sama transakcja, każdy może) albo uruchom bota z laptopa.
+- **Bot nie pobiera raty**: sprawdź logi `automat` na Railway; awaryjnie kliknij w kasie **„Pobierz ratę teraz”** albo **„Pokryj zaległą ratę”** (to te same transakcje, każdy może) albo uruchom bota z laptopa.
 - **RPC 429 / „Problem z RPC devnetu”**: odczekaj 5–10 s, kliknij odśwież. Transakcje są potwierdzane także bez websocketu.
 - **„żadna rata nie jest jeszcze wymagalna / zaległa”**: zegar devnetu spóźnia się kilka sekund; poczekaj, aż przycisk pojawi się ponownie.
 - **Brak tPLN / SOL**: „Dobierz testowe zł” (limit: raz na 30 s na adres).

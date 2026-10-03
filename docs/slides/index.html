@@ -125,7 +125,7 @@
       <tr><td>Direct debit of installments</td><td>Employer's payroll, bank</td><td class="good">Revocable SPL mandate to the member's own PDA; from the due date anyone pulls <em>only what is due</em></td></tr>
       <tr><td>Debt collection</td><td>Board, collection agency</td><td class="good">After grace anyone collects from collateral: borrower first, then guarantors</td></tr>
       <tr><td>Standing order to save</td><td>Bank</td><td class="good">Standing contribution, pulled once per period under the same mandate</td></tr>
-      <tr><td>Credit history</td><td>BIK</td><td class="good">Every loan stays on-chain; a guarantor sees the borrower's record across all kasas</td></tr>
+      <tr><td>Statement &amp; credit history</td><td>Bank, BIK</td><td class="good">Kasa history from the chain with the balance after every move; a guarantor sees the borrower's record across all kasas</td></tr>
       <tr><td>Changing the rules</td><td>General meeting, board</td><td class="good">No instruction changes them; no admin key</td></tr>
     </tbody>
   </table>
@@ -254,12 +254,12 @@
     <div class="col">
       <div class="grid2">
         <div class="card metric"><div class="big">20/20</div><div class="label">Rust tests, LiteSVM + real SPL Token: 8 new for the mandate (never more than due, never from another wallet, revoke → collateral)</div></div>
-        <div class="card metric"><div class="big">11/11</div><div class="label">Web tests: the app's math matches the program; credit history and network totals</div></div>
+        <div class="card metric"><div class="big">14/14</div><div class="label">Web tests: the app's math matches the program; credit history; the kasa history follows the vault</div></div>
         <div class="card metric"><div class="big">E2E</div><div class="label">Devnet run: bot pulls a contribution and an installment with nobody signing, revoke, collection, bank run → vault 0</div></div>
         <div class="card metric"><div class="big">UI</div><div class="label">Playwright drives 3 wallets through the deployed app while the bot runs on Railway</div></div>
       </div>
     </div>
-    <div class="col"><img class="shot" src="../screenshots/08b-collected-card.png" style="width:100%;height:auto;max-height:480px"></div>
+    <div class="col"><img class="shot" src="../screenshots/08c-kasa-history.png" style="width:100%;height:auto;max-height:480px"></div>
   </div>
   <div class="footer"><span>docs/devnet-e2e.md · docs/screenshots</span><span>8 / 10</span></div>
 </section>
