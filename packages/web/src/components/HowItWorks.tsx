@@ -6,10 +6,11 @@ import { PROGRAM_ID, REPO_URL } from "@/lib/kasa";
 import { AddressLink, Card } from "./ui";
 
 const SRC = `${REPO_URL}/blob/HEAD/packages/contracts/programs/kasa/src`;
+const WEB = `${REPO_URL}/blob/HEAD/packages/web`;
 
-function Code({ path, line, children }: { path: string; line: number; children: React.ReactNode }) {
+function Code({ path, line, children, web = false }: { path: string; line: number; children: React.ReactNode; web?: boolean }) {
   return (
-    <a href={`${SRC}/${path}#L${line}`} target="_blank" rel="noreferrer" className="font-mono text-[11px] text-sky-700 hover:underline inline-flex items-center gap-0.5">
+    <a href={`${web ? WEB : SRC}/${path}#L${line}`} target="_blank" rel="noreferrer" className="font-mono text-[11px] text-sky-700 hover:underline inline-flex items-center gap-0.5">
       {children}
       <ExternalLink className="w-2.5 h-2.5" aria-hidden />
     </a>
@@ -20,17 +21,46 @@ const ROLES: { today: string; now: React.ReactNode; code: React.ReactNode }[] = 
   {
     today: "Skarbnik trzyma pieniądze na koncie kasy (albo na swoim prywatnym)",
     now: "Skarbiec to konto należące do programu. Wypłacić z niego może tylko kod, według zasad.",
-    code: <Code path="vault.rs" line={32}>vault.rs: pay_out</Code>,
+    code: <Code path="vault.rs" line={35}>vault.rs: pay_out</Code>,
   },
   {
-    today: "Zarząd decyduje, kto dostanie pożyczkę",
+    today: "Zarząd (albo bank) decyduje, kto dostanie pożyczkę",
     now: "Nikt nie zatwierdza. Pożyczka wypłaca się, gdy zablokowane oszczędności (własne + poręczenia) pokrywają 100% kwoty.",
-    code: <Code path="instructions/loan.rs" line={247}>loan.rs: disburse</Code>,
+    code: <Code path="instructions/loan.rs" line={248}>loan.rs: disburse</Code>,
   },
   {
-    today: "Pracodawca potrąca raty z pensji, zarząd ściga dłużników",
-    now: "Po terminie i karencji każdy może wywołać egzekucję: rata schodzi z zabezpieczeń, bez niczyjej zgody.",
-    code: <Code path="instructions/repay.rs" line={100}>repay.rs: collect_overdue</Code>,
+    today: "Pracodawca potrąca raty z pensji; bank realizuje polecenie zapłaty",
+    now: (
+      <>
+        Pożyczkobiorca daje zgodę SPL swojemu kontu w kasie. W dniu terminu każdy (w praktyce automat) może pobrać z jego portfela{" "}
+        <strong>tylko wymagalną ratę</strong>, tylko z jego konta i tylko w limicie zgody. Zgodę cofa jednym kliknięciem.
+      </>
+    ),
+    code: (
+      <span className="flex flex-col gap-0.5">
+        <Code path="instructions/autopay.rs" line={57}>autopay.rs: pull_installment</Code>
+        <Code path="vault.rs" line={64}>vault.rs: mandate_available</Code>
+      </span>
+    ),
+  },
+  {
+    today: "Firma windykacyjna ściga dłużników",
+    now: "Nie ma zgody albo pieniędzy w portfelu? Po terminie i karencji każdy może wywołać egzekucję: rata schodzi z zabezpieczeń, bez niczyjej zgody.",
+    code: <Code path="instructions/repay.rs" line={96}>repay.rs: collect_overdue</Code>,
+  },
+  {
+    today: "Bank realizuje stałe zlecenie oszczędzania",
+    now: "Składka stała: raz na okres każdy (automat) może przenieść ustaloną kwotę z portfela członka do jego oszczędności, w limicie zgody.",
+    code: <Code path="instructions/autopay.rs" line={142}>autopay.rs: pull_contribution</Code>,
+  },
+  {
+    today: "BIK mówi, czy ktoś spłaca długi",
+    now: "Historia każdego pożyczkobiorcy jest w kontach pożyczek na łańcuchu, w całej sieci kas. Poręczyciel widzi ją przed poręczeniem. To informacja, nie reguła: program jej nie używa.",
+    code: (
+      <Code path="src/lib/history.ts" line={33} web>
+        history.ts: creditHistory
+      </Code>
+    ),
   },
   {
     today: "Zwrot oszczędności po decyzji zarządu (zwykle przy odejściu z pracy)",
@@ -54,10 +84,11 @@ export function HowItWorks() {
           Członkowie co miesiąc odkładają pieniądze i pożyczają sobie bez odsetek, a pożyczki poręczają inni członkowie (żyranci).
           Dziś to działa tylko dzięki <strong>pośrednikom</strong>: zarządowi i skarbnikowi, którzy trzymają pieniądze i decydują o
           pożyczkach, oraz pracodawcy, który potrąca raty z pensji. Trzeba im ufać, a kiedy skarbnik zniknie z pieniędzmi albo
-          zarząd odmówi, nikt z członków nie ma na to wpływu.
+          zarząd odmówi, nikt z członków nie ma na to wpływu. A kto nie ma takiej kasy, idzie do <strong>banku</strong>: po kredyt,
+          stałe zlecenie, polecenie zapłaty i ocenę w BIK – i za każdą z tych rzeczy płaci odsetkami albo prowizją.
         </p>
         <p className="text-sm text-slate-700 leading-relaxed mt-2">
-          W <strong>Kasie bez zarządu</strong> te role przejmuje program na Solanie. Strona A (pożyczkobiorca) nie musi ufać stronie B
+          W <strong>Kasie bez zarządu</strong> wszystkie te role przejmuje program na Solanie. Strona A (pożyczkobiorca) nie musi ufać stronie B
           (poręczycielom i reszcie kasy), bo obie polegają na regule zapisanej w programie, której żadna instrukcja nie pozwala obejść – także nam, autorom.
         </p>
       </Card>
@@ -103,7 +134,8 @@ export function HowItWorks() {
         <Card>
           <h2 className="font-bold text-slate-900 text-sm mb-2">Co jeśli ktoś zniknie w połowie?</h2>
           <ul className="text-xs text-slate-700 space-y-1.5 list-disc list-inside">
-            <li><strong>Pożyczkobiorca przestaje płacić:</strong> raty i tak trafiają do kasy z jego zablokowanych oszczędności, a potem z poręczeń. Wystarczy, że ktokolwiek kliknie „Egzekwuj”.</li>
+            <li><strong>Pożyczkobiorca przestaje płacić</strong> (cofa zgodę albo opróżnia portfel): po karencji raty i tak trafiają do kasy z jego zablokowanych oszczędności, a potem z poręczeń. Robi to automat albo ktokolwiek, kto kliknie „Egzekwuj”.</li>
+            <li><strong>Automat (bot) znika:</strong> nie ma żadnych uprawnień, tylko płaci opłaty sieci. Te same przyciski są w aplikacji dla każdego, a kod bota jest publiczny – może go uruchomić każdy.</li>
             <li><strong>Poręczyciel znika:</strong> nic nie musi robić. Poręczenie odblokuje się samo, gdy pożyczka zostanie spłacona.</li>
             <li><strong>Założyciel znika:</strong> nie ma żadnych uprawnień, więc nic się nie zmienia.</li>
             <li><strong>My i ta strona znikamy:</strong> program i jego IDL są na łańcuchu. Każdy może zbudować transakcje sam.</li>
@@ -121,6 +153,9 @@ export function HowItWorks() {
             <tr><td className="text-slate-600 pr-3">Poręczyć</td><td className="text-slate-900">Inny członek, z własnych wolnych oszczędności</td></tr>
             <tr><td className="text-slate-600 pr-3">Wypłacić pożyczkę / anulować wniosek</td><td className="text-slate-900">Tylko pożyczkobiorca</td></tr>
             <tr><td className="text-slate-600 pr-3">Spłacić</td><td className="text-slate-900">Każdy (także za kogoś)</td></tr>
+            <tr><td className="text-slate-600 pr-3">Dać lub cofnąć zgodę na pobieranie (polecenie zapłaty)</td><td className="text-slate-900">Tylko właściciel portfela (standardowe SPL approve / revoke)</td></tr>
+            <tr><td className="text-slate-600 pr-3">Ustawić lub wyłączyć składkę stałą</td><td className="text-slate-900">Tylko członek, dla siebie</td></tr>
+            <tr><td className="text-slate-600 pr-3">Pobrać ratę albo składkę z polecenia zapłaty</td><td className="text-slate-900">Każdy (np. automat): tylko kwotę wymagalną, tylko z portfela tej osoby, w limicie jej zgody</td></tr>
             <tr><td className="text-slate-600 pr-3">Egzekwować zaległą ratę</td><td className="text-slate-900">Każdy, po terminie + karencji</td></tr>
             <tr><td className="text-slate-600 pr-3">Zmienić zasady, zamrozić lub przelać cudze środki</td><td className="text-slate-900 font-semibold">Żadna instrukcja na to nie pozwala, także nam</td></tr>
           </tbody>
@@ -143,7 +178,9 @@ export function HowItWorks() {
         <p className="text-xs text-slate-700 leading-relaxed">
           Bo w bazie danych pośrednikiem jest ten, kto ją prowadzi: może zmienić saldo, zatrzymać wypłatę albo „pożyczyć” sobie z
           kasy. Tu saldo to konto tokenowe programu, zasady to publiczny kod, którego żadna instrukcja nie omija, a każdy członek widzi każdą
-          operację w czasie rzeczywistym. Egzekucja raty nie potrzebuje zaufanego serwera, bo może ją uruchomić każdy.
+          operację w czasie rzeczywistym. Egzekucja raty nie potrzebuje zaufanego serwera, bo może ją uruchomić każdy. A polecenie
+          zapłaty w banku wymaga banku, któremu ufają obie strony; tu limit zgody pilnuje program SPL Token, kwotę – nasz program, a
+          bot, który wysyła transakcję, nie może zrobić nic ponad to, co i tak wolno każdemu.
         </p>
       </Card>
     </div>
