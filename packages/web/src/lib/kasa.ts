@@ -12,6 +12,8 @@ export const MINT = (process.env.NEXT_PUBLIC_MINT ?? "3m9ZBm3NqJSRbMdCbnsB5fZWKx
 export const DECIMALS = 2;
 export const REPO_URL = process.env.NEXT_PUBLIC_REPO_URL ?? "https://github.com/jxroo/kasa-bez-zarzadu";
 export const DEFAULT_ADDRESS = "11111111111111111111111111111111" as Address;
+/** The public bot (scripts/crank.ts): it only pays fees, the UI just labels its transactions. */
+export const BOT_ADDRESS = process.env.NEXT_PUBLIC_BOT_ADDRESS ?? "AuEGLSxJpfFqesbtQPDaBvTNqdsRUkZqPx3xiFjFqGqz";
 export const LAMPORTS_PER_SOL = 1_000_000_000n;
 const BPS = 10_000n;
 
@@ -162,8 +164,8 @@ export function splitProRata(total: bigint, weights: bigint[]): bigint[] {
 export const LOAN_STATUS_LABEL: Record<LoanStatus, string> = {
   [LoanStatus.Pending]: "Czeka na poręczenia",
   [LoanStatus.Active]: "Spłacana",
-  [LoanStatus.Repaid]: "Rozliczona",
-  [LoanStatus.Cancelled]: "Anulowana",
+  [LoanStatus.Repaid]: "Spłacona",
+  [LoanStatus.Cancelled]: "Bez wypłaty",
 };
 
 /** "1 rata", "2–4 raty", "5 rat" (and 12–14 rat), as Polish counts them. */
@@ -199,16 +201,16 @@ const PROGRAM_ERRORS_PL: Record<number, string> = {
   6012: "Program odrzucił: tylko pożyczkobiorca może to zrobić.",
   6013: "Program odrzucił: nie można poręczyć własnej pożyczki.",
   6014: "Pożyczka ma już maksymalnie 3 poręczycieli.",
-  6015: "Poręczenie przekracza brakującą część zabezpieczenia.",
+  6015: "Poręczenie jest większe niż brakująca kwota.",
   6016: "Nie jesteś poręczycielem tej pożyczki.",
-  6017: "Program odrzucił: pożyczka nie jest jeszcze w 100% zabezpieczona.",
+  6017: "Program odrzucił: pożyczka nie jest jeszcze w całości pokryta oszczędnościami i poręczeniami.",
   6018: "Kwota przekracza to, co zostało do spłaty.",
-  6019: "Program odrzucił: żadna rata nie jest jeszcze zaległa.",
+  6019: "Program odrzucił: żadna rata nie jest jeszcze zaległa (trwa czas na spóźnienie).",
   6020: "Konta poręczycieli nie zgadzają się z pożyczką.",
   6021: "Konto należy do innej kasy.",
   6022: "Błąd arytmetyczny.",
-  6023: "Program odrzucił: żadna rata nie jest jeszcze wymagalna.",
-  6024: "Brak zgody na pobieranie (polecenia zapłaty) albo środków w portfelu.",
+  6023: "Program odrzucił: termin żadnej raty jeszcze nie minął.",
+  6024: "Automatyczna spłata jest wyłączona albo w portfelu brakuje pieniędzy.",
   6025: "Program odrzucił: to konto nie należy do osoby, która płaci.",
   6026: "Nie ustawiono składki stałej.",
   6027: "Kolejna składka nie jest jeszcze wymagalna.",

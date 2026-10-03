@@ -18,6 +18,7 @@ import {
 import { describeError, formatZl, maxLoan, memberFree, outstanding, parseZl, utf8Length } from "@/lib/kasa";
 import { useChainNow, useKasa } from "./KasaProvider";
 import { CreditHistoryLine } from "./History";
+import { KasaHistory } from "./KasaHistory";
 import { LoanCard } from "./LoanCard";
 import { AddressLink, Badge, Button, Card, EmptyState, ErrorText, formatDuration, Input, Label, Select, Stat } from "./ui";
 
@@ -48,7 +49,7 @@ export function KasaView({ kasa, onBack }: { kasa: Address; onBack: () => void }
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{k.data.name}</h1>
           <p className="text-xs text-slate-500">
-            Kasa <AddressLink address={kasa} /> · założyciel: {names.get(k.data.founder) ?? "członek"} (bez żadnych uprawnień)
+            Kasa <AddressLink address={kasa} /> · założyciel: {names.get(k.data.founder) ?? "członek"} (zwykły członek, bez specjalnych praw)
           </p>
         </div>
         <ShareButton kasa={kasa} />
@@ -69,7 +70,7 @@ export function KasaView({ kasa, onBack }: { kasa: Address; onBack: () => void }
             ))}
             {closed.length > 0 && (
               <details className="group">
-                <summary className="text-xs font-semibold text-slate-600 cursor-pointer">Rozliczone i anulowane ({closed.length})</summary>
+                <summary className="text-xs font-semibold text-slate-600 cursor-pointer">Zakończone pożyczki ({closed.length})</summary>
                 <div className="space-y-3 mt-3">
                   {closed.map((l) => (
                     <LoanCard key={l.address} loan={l} kasa={k} names={names} me={me} />
@@ -78,6 +79,7 @@ export function KasaView({ kasa, onBack }: { kasa: Address; onBack: () => void }
               </details>
             )}
           </section>
+          <KasaHistory kasa={k} names={names} />
         </div>
         <div className="lg:col-span-4 space-y-4">
           <RulesCard kasa={k} />
@@ -118,24 +120,25 @@ function RulesCard({ kasa }: { kasa: WithAddress<Kasa> }) {
   return (
     <Card>
       <h2 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5">
-        <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden /> Zasady zapisane w programie
+        <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden /> Zasady tej kasy
       </h2>
       <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
-        <dt className="text-slate-500">Pożyczka maksymalnie</dt>
-        <dd className="font-semibold text-slate-900">{d.loanMultiplierBps / 10_000}× Twoich oszczędności</dd>
-        <dt className="text-slate-500">Zabezpieczenie</dt>
-        <dd className="font-semibold text-slate-900">100%: Twoje oszczędności + poręczenia</dd>
+        <dt className="text-slate-500">Ile można pożyczyć</dt>
+        <dd className="font-semibold text-slate-900">do {d.loanMultiplierBps / 10_000}× tego, co masz odłożone</dd>
+        <dt className="text-slate-500">Warunek wypłaty</dt>
+        <dd className="font-semibold text-slate-900">Twoje oszczędności + poręczenia innych pokrywają całą kwotę</dd>
         <dt className="text-slate-500">Raty</dt>
         <dd className="font-semibold text-slate-900">do {d.maxInstallments}, co {formatDuration(d.periodSecs)}</dd>
-        <dt className="text-slate-500">Karencja</dt>
+        <dt className="text-slate-500">Czas na spóźnienie</dt>
         <dd className="font-semibold text-slate-900">{formatDuration(d.graceSecs)}</dd>
         <dt className="text-slate-500">Odsetki i prowizje</dt>
         <dd className="font-semibold text-emerald-700">0 zł</dd>
         <dt className="text-slate-500">Kto zatwierdza pożyczki</dt>
-        <dd className="font-semibold text-slate-900">nikt – wystarczą poręczenia</dd>
+        <dd className="font-semibold text-slate-900">nikt</dd>
       </dl>
       <p className="text-[11px] text-slate-500 mt-3">
-        Program nie ma instrukcji, która zmienia te zasady, ani klucza admina czy zarządu. (Na devnecie kod programu może jeszcze zaktualizować klucz autorów – szczegóły w zakładce „Gdzie znika pośrednik?”.)
+        Zasady ustalono przy zakładaniu kasy i nikt ich nie zmieni: nie ma zarządu ani administratora. (Uczciwie: w wersji
+        testowej autorzy mogą jeszcze podmienić kod programu – szczegóły w zakładce „Gdzie znika pośrednik?”.)
       </p>
     </Card>
   );
@@ -151,19 +154,19 @@ function VaultCard({ kasa }: { kasa: WithAddress<Kasa> }) {
   return (
     <Card className="bg-emerald-50 border-emerald-200">
       <h2 className="font-bold text-emerald-900 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
-        <Vault className="w-4 h-4" aria-hidden /> Skarbiec (konto programu, nie skarbnika)
+        <Vault className="w-4 h-4" aria-hidden /> Pieniądze kasy
       </h2>
       <div className="text-2xl font-bold text-emerald-900">{vaultBalance === null ? "…" : formatZl(vaultBalance)}</div>
       <p className="text-[11px] text-emerald-900 mt-1">
-        = oszczędności {formatZl(kasa.data.totalSavings)} − pożyczone {formatZl(kasa.data.totalOutstanding)}{" "}
+        = odłożone {formatZl(kasa.data.totalSavings)} − pożyczone {formatZl(kasa.data.totalOutstanding)}{" "}
         {vaultBalance !== null && (vaultBalance === expected ? "✓" : "(odświeżam…)")}
       </p>
       <p className="text-[11px] text-emerald-800 mt-2">
-        Każda pożyczka jest w 100% pokryta zablokowanymi oszczędnościami, więc w skarbcu zawsze leżą wszystkie wolne
-        oszczędności. Każdy może je wypłacić w dowolnej chwili, bez pytania kogokolwiek.
+        Leżą na koncie programu, nie u skarbnika ani w banku. Każda pożyczka jest w całości pokryta zablokowanymi
+        oszczędnościami, więc wolne pieniądze każdego członka zawsze tu są – wyjmujesz je, kiedy chcesz, bez pytania kogokolwiek.
       </p>
       <div className="mt-2">
-        <AddressLink address={kasa.data.vault} label="skarbiec w eksploratorze" />
+        <AddressLink address={kasa.data.vault} label="sprawdź konto kasy w eksploratorze" />
       </div>
     </Card>
   );
@@ -197,7 +200,7 @@ function MembersCard({ members }: { members: WithAddress<Member>[] }) {
                   <div className="text-emerald-700">składka stała: {formatZl(data.contribution)}</div>
                 )}
                 {data.totalSeized > 0n && (
-                  <div className="text-rose-600">pokryło zaległości: {formatZl(data.totalSeized)}</div>
+                  <div className="text-rose-600">stracone na niezapłacone raty: {formatZl(data.totalSeized)}</div>
                 )}
                 <button
                   className="block text-slate-500 hover:text-slate-800 underline decoration-dotted"
@@ -245,8 +248,8 @@ function MyPanel({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddress<Member
       <Card>
         <h2 className="font-bold text-slate-900 text-sm mb-1">Dołącz do kasy</h2>
         <p className="text-[11px] text-slate-500 mb-3">
-          Nikt nie musi Cię zatwierdzać: ryzykujesz tylko własne oszczędności, a pożyczkę dostaniesz wyłącznie wtedy, gdy ktoś
-          sam zdecyduje się za Ciebie poręczyć.
+          Nikt nie musi Cię przyjmować. Ryzykujesz tylko własne pieniądze, a pożyczkę dostaniesz tylko wtedy, gdy ktoś sam zechce
+          za Ciebie poręczyć.
         </p>
         <form
           className="flex gap-2"
@@ -302,14 +305,14 @@ function MyPanel({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddress<Member
         <span className="text-[11px] text-slate-500">w portfelu: {tokenBalance !== null ? formatZl(tokenBalance) : "0 zł"}</span>
       </div>
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <Stat label="Oszczędności w kasie" value={formatZl(me.data.savings)} />
+        <Stat label="Odłożone w kasie" value={formatZl(me.data.savings)} />
         <Stat
           label="Zablokowane"
           value={<span className="inline-flex items-center gap-1">{me.data.locked > 0n && <Lock className="w-3.5 h-3.5" aria-hidden />}{formatZl(me.data.locked)}</span>}
-          hint="zabezpieczają pożyczki"
+          hint="chronią pożyczki, do czasu spłaty"
           tone={me.data.locked > 0n ? "amber" : "slate"}
         />
-        <Stat label="Wolne (do wypłaty)" value={formatZl(free)} tone="emerald" />
+        <Stat label="Wolne (możesz wyjąć)" value={formatZl(free)} tone="emerald" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
@@ -320,7 +323,7 @@ function MyPanel({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddress<Member
           </div>
         </div>
         <div>
-          <Label htmlFor="wd">Wypłać wolne oszczędności (zł)</Label>
+          <Label htmlFor="wd">Wyjmij wolne pieniądze (zł)</Label>
           <div className="flex gap-2">
             <Input id="wd" inputMode="decimal" placeholder={formatZl(free, false)} value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
             <Button variant="ghost" onClick={withdraw} disabled={!!busy || free === 0n}>Wypłać</Button>
@@ -374,40 +377,47 @@ function StandingOrderCard({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddr
   return (
     <Card>
       <h2 className="font-bold text-slate-900 text-sm mb-1 flex items-center gap-1.5">
-        <Repeat className="w-4 h-4 text-emerald-600" aria-hidden /> Stałe zlecenie i polecenie zapłaty (bez banku)
+        <Repeat className="w-4 h-4 text-emerald-600" aria-hidden /> Płatności automatyczne
       </h2>
-      <p className="text-[11px] text-slate-500 mb-3">
-        Dajesz swojemu kontu w tej kasie zgodę na pobieranie z portfela (standardowe SPL <code>approve</code>). Program użyje jej tylko
-        do składki raz na okres i do wymagalnych rat Twojej pożyczki. Transakcje wysyła automat bez żadnych uprawnień. Zgodę cofasz
-        jednym kliknięciem.
+      <p className="text-[11px] text-slate-600 mb-1">
+        Jedna zgoda i nie musisz pamiętać o terminach: co okres program sam przeleje Twoją stałą składkę z portfela do kasy, a w
+        dniu raty – ratę Twojej pożyczki. Weźmie tylko tyle, ile trzeba. Zgodę wyłączasz jednym kliknięciem.
       </p>
+      <details className="text-[11px] text-slate-500 mb-3">
+        <summary className="cursor-pointer">Jak to działa technicznie?</summary>
+        <p className="mt-1">
+          To standardowa zgoda z limitem kwoty (SPL <code>approve</code>) dla Twojego konta w tej kasie. Program może z niej pobrać tylko
+          wymagalną ratę albo składkę, tylko z Twojego portfela. Transakcje wysyła automat, który nie ma żadnych uprawnień – płaci
+          tylko opłatę sieci. Gdy zgodę wyłączysz, raty nadal są chronione Twoimi zablokowanymi oszczędnościami.
+        </p>
+      </details>
       <div className="flex flex-wrap gap-2 mb-3 text-[11px]">
         {mine ? (
           <span className="px-2 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800">
-            Zgoda aktywna: do {formatZl(walletToken!.delegatedAmount)}
+            Włączone · limit {formatZl(walletToken!.delegatedAmount)}
           </span>
         ) : (
-          <span className="px-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-600">Brak zgody dla tej kasy</span>
+          <span className="px-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-600">Wyłączone w tej kasie</span>
         )}
         {me.data.contribution > 0n && (
           <span className="px-2 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800">
-            Składka {formatZl(me.data.contribution)} co {formatDuration(kasa.data.periodSecs)} ·{" "}
-            {next > now ? `następna za ${formatDuration(next - now)}` : mine ? "wymagalna – automat pobiera" : "wymagalna – brak zgody"}
+            Stała składka {formatZl(me.data.contribution)} co {formatDuration(kasa.data.periodSecs)} ·{" "}
+            {next > now ? `następna za ${formatDuration(next - now)}` : mine ? "teraz – automat pobiera" : "czeka na włączenie płatności"}
           </span>
         )}
       </div>
       {elsewhere && (
         <p className="text-[11px] text-amber-800 mb-2">
-          Twoje konto tPLN ma już zgodę dla innej kasy. Jedno konto SPL ma jednego delegata, więc nowa zgoda zastąpi tamtą.
+          Masz włączone płatności automatyczne w innej kasie. Można je mieć tylko w jednej kasie naraz – nowa zgoda zastąpi tamtą.
         </p>
       )}
       <div className="flex flex-wrap items-end gap-2">
         <div>
-          <Label htmlFor="contrib">Składka co okres (zł)</Label>
+          <Label htmlFor="contrib">Stała składka co okres (zł)</Label>
           <Input id="contrib" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-28" />
         </div>
         <Button onClick={save} disabled={!!busy}>
-          {me.data.contribution > 0n ? "Zmień składkę" : "Ustaw składkę"}
+          {me.data.contribution > 0n ? "Zmień składkę" : "Włącz stałą składkę"}
         </Button>
         {me.data.contribution > 0n && (
           <Button
@@ -427,10 +437,10 @@ function StandingOrderCard({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddr
             disabled={!!busy}
             onClick={async () => {
               const ix = await revokeMandateIx(client.identity, kasa.data.mint);
-              await run("Cofnięcie zgody na pobieranie", () => client.sendTransaction([ix]));
+              await run("Wyłączenie płatności automatycznych", () => client.sendTransaction([ix]));
             }}
           >
-            Cofnij zgodę
+            Wyłącz płatności automatyczne
           </Button>
         )}
       </div>
@@ -462,7 +472,7 @@ function RequestLoanForm({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddres
     if (parsed === null || parsed <= 0n) return setError("Podaj kwotę pożyczki.");
     if (parsed > limit) return setError(`Limit w tej kasie to ${formatZl(limit)} (${kasa.data.loanMultiplierBps / 10_000}× Twoich oszczędności).`);
     const ix = await requestLoanIx(client.identity, kasa.address, me.data.loanCount, parsed, Number(installments));
-    await run(`Wniosek o pożyczkę ${formatZl(parsed)}`, () => client.sendTransaction([ix]));
+    await run(`Prośba o pożyczkę ${formatZl(parsed)}`, () => client.sendTransaction([ix]));
     setAmount("");
   }
 
@@ -470,8 +480,8 @@ function RequestLoanForm({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddres
     <Card>
       <h2 className="font-bold text-slate-900 text-sm mb-1">Poproś o pożyczkę</h2>
       <p className="text-[11px] text-slate-500 mb-3">
-        Twój limit: <strong>{formatZl(limit)}</strong>. Bez odsetek. Nikt jej nie zatwierdza: Twoje wolne oszczędności blokują się
-        jako zabezpieczenie, a brakującą część muszą poręczyć inni członkowie.
+        Możesz pożyczyć do <strong>{formatZl(limit)}</strong>, bez odsetek. Nikt tego nie zatwierdza. Twoje oszczędności zostaną
+        zablokowane do czasu spłaty, a resztę kwoty muszą poręczyć inni członkowie.
       </p>
       <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
         <div>
@@ -489,18 +499,18 @@ function RequestLoanForm({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddres
           </Select>
         </div>
         <Button type="submit" disabled={!!busy || limit === 0n}>
-          Złóż wniosek
+          Poproś o pożyczkę
         </Button>
       </form>
       {parsed !== null && parsed > 0n && (
         <div className="flex flex-wrap gap-2 mt-3">
-          <Badge tone="amber">Twoje zabezpieczenie: {formatZl(own)}</Badge>
+          <Badge tone="amber">Zablokujesz swoje: {formatZl(own)}</Badge>
           <Badge tone={fromGuarantors > 0n ? "sky" : "emerald"}>
-            {fromGuarantors > 0n ? `Potrzeba poręczeń: ${formatZl(fromGuarantors)}` : "Bez poręczycieli – wypłata od razu"}
+            {fromGuarantors > 0n ? `Inni muszą poręczyć: ${formatZl(fromGuarantors)}` : "Bez poręczeń – wypłata od razu"}
           </Badge>
         </div>
       )}
-      {limit === 0n && <p className="text-[11px] text-slate-500 mt-2">Najpierw wpłać oszczędności – limit to ich wielokrotność.</p>}
+      {limit === 0n && <p className="text-[11px] text-slate-500 mt-2">Najpierw coś odłóż – pożyczyć możesz kilka razy tyle, ile masz w kasie.</p>}
       <ErrorText>{error}</ErrorText>
     </Card>
   );

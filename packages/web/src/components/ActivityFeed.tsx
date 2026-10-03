@@ -9,10 +9,10 @@ export function ActivityFeed() {
   if (!busy && activity.length === 0) return null;
   return (
     <Card>
-      <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-2">Dziennik transakcji (devnet)</h3>
+      <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-2">Twoje ostatnie operacje</h3>
       {busy && (
         <div className="text-xs text-slate-600 mb-2 animate-pulse" role="status">
-          ⏳ {busy}: czekam na podpis i potwierdzenie…
+          ⏳ {busy}: czekam na podpis w portfelu i potwierdzenie sieci…
         </div>
       )}
       <ul className="space-y-1.5">

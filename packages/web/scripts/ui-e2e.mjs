@@ -146,7 +146,7 @@ const kasaUrl = anna.url();
 await anna.fill("#dep", "1000");
 await act(anna, () => anna.getByRole("button", { name: "Wpłać", exact: true }).click());
 await anna.fill("#contrib", "100");
-await act(anna, () => anna.getByRole("button", { name: "Ustaw składkę" }).click());
+await act(anna, () => anna.getByRole("button", { name: "Włącz stałą składkę" }).click());
 await anna.waitForSelector("text=następna za", { timeout: T });
 await shot(anna, "03-standing-order");
 console.log("1. kasa created, contribution pulled by the bot", kasaUrl);
@@ -160,7 +160,7 @@ await bartek.fill("#dep", "500");
 await act(bartek, () => bartek.getByRole("button", { name: "Wpłać", exact: true }).click());
 await bartek.fill("#loan-amount", "1000");
 await bartek.selectOption("#loan-inst", "4");
-await act(bartek, () => bartek.getByRole("button", { name: "Złóż wniosek" }).click());
+await act(bartek, () => bartek.getByRole("button", { name: "Poproś o pożyczkę" }).click());
 await bartek.waitForSelector("text=Czeka na poręczenia", { timeout: T });
 await shot(bartek, "04-loan-requested");
 console.log("2. loan requested");
@@ -182,30 +182,38 @@ console.log("3. guaranteed");
 
 // 4. Bartek pays the loan out (no approval) with the direct-debit box ticked (default).
 await refresh(bartek);
-await bartek.waitForSelector("text=Zabezpieczona w 100%", { timeout: T });
+await bartek.waitForSelector("text=Pożyczka jest w pełni pokryta", { timeout: T });
 await shot(bartek, "05-loan-covered");
 await act(bartek, () => bartek.getByRole("button", { name: "Wypłać pożyczkę na mój portfel" }).click());
-await bartek.waitForSelector("text=Polecenie zapłaty aktywne", { timeout: T });
+await bartek.waitForSelector("text=Automatyczna spłata włączona", { timeout: T });
 await shot(bartek, "06-loan-active-mandate");
 console.log("4. disbursed with a mandate");
 
 // 5. Installment 1 falls due: nobody clicks, the bot pulls it from Bartek's wallet.
-await bartek.waitForSelector('span:has-text("Z polecenia zapłaty: 250 zł")', { timeout: 240_000 });
+await bartek.waitForSelector('span:has-text("Spłacone automatycznie: 250 zł")', { timeout: 240_000 });
 await shot(bartek, "07-installment-pulled-by-bot");
 await bartek.locator('article[aria-label^="Pożyczka"]').first().screenshot({ path: `${shots}/07b-installment-pulled-card.png` });
 console.log("5. installment 1 pulled by the bot");
 
 // 6. Bartek stops paying: he revokes the mandate. After installment 2 + grace the bot
 //    collects it from his locked savings; Celina just watches.
-await act(bartek, () => bartek.getByRole("button", { name: "Cofnij polecenie zapłaty" }).click());
-await bartek.waitForSelector("text=Bez polecenia zapłaty", { timeout: T });
+await act(bartek, () => bartek.getByRole("button", { name: "Wyłącz automatyczną spłatę" }).click());
+await bartek.waitForSelector("text=Automatyczna spłata wyłączona", { timeout: T });
 await refresh(celina);
-await celina.waitForSelector("text=Pobrane z zabezpieczeń", { timeout: 240_000 });
+await celina.waitForSelector("text=Pokryte z zablokowanych oszczędności", { timeout: 240_000 });
 await shot(celina, "08-collected-by-bot");
 await celina.locator('article[aria-label^="Pożyczka"]').first().screenshot({ path: `${shots}/08b-collected-card.png` });
+
 console.log("6. installment 2 collected from collateral by the bot");
 
-// 6. Explainer.
+// 7. The kasa's history: every movement from the chain, the bot's rows, and the balance check.
+const history = celina.getByRole("region", { name: "Historia kasy" });
+await history.getByText("Niezapłacona rata pokryta z zablokowanych oszczędności").first().waitFor({ timeout: T });
+await history.getByText("zgadza się z historią").waitFor({ timeout: T });
+await history.screenshot({ path: `${shots}/08c-kasa-history.png` });
+console.log("7. kasa history shows the bot's pull, the collection and a matching balance");
+
+// 8. Explainer.
 await celina.getByRole("button", { name: "Gdzie znika pośrednik?" }).click();
 await celina.waitForSelector("text=Gdzie dokładnie znika pośrednik", { timeout: T });
 await shot(celina, "09-how-it-works");

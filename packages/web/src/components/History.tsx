@@ -20,23 +20,22 @@ export function CreditHistoryLine({ wallet, name }: { wallet: Address; name: str
     <div className="text-[11px] text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 flex items-start gap-1.5">
       <HistoryIcon className="w-3.5 h-3.5 shrink-0 mt-px text-slate-500" aria-hidden />
       <span>
-        <strong>{name}: historia w całej sieci kas</strong> (publiczna, z łańcucha, zamiast BIK):{" "}
+        <strong>Jak {name} spłaca pożyczki</strong> (we wszystkich kasach, dane publiczne – zamiast BIK):{" "}
         {loans === 0 ? (
           "jeszcze żadnej pożyczki."
         ) : (
           <>
-            {h.repaidClean} {plural(h.repaidClean, "pożyczka spłacona", "pożyczki spłacone", "pożyczek spłaconych")} bez egzekucji
+            spłacone w terminie: {h.repaidClean}
             {h.repaidWithCollection > 0 && (
               <span className="text-rose-700">
-                , {h.repaidWithCollection} z egzekucją z zabezpieczeń
-                {h.guarantorsLost > 0n && ` (poręczyciele stracili ${formatZl(h.guarantorsLost)})`}
+                , z niezapłaconymi ratami: {h.repaidWithCollection}
+                {h.guarantorsLost > 0n && ` (poręczający stracili ${formatZl(h.guarantorsLost)})`}
               </span>
             )}
-            {h.active > 0 && `, ${h.active} w spłacie`}
-            {h.autopaid > 0n && `; ${formatZl(h.autopaid)} spłacone poleceniem zapłaty`}.
+            {h.active > 0 && `, w trakcie spłaty: ${h.active}`}.
           </>
         )}
-        {h.guarantees > 0 && ` Poręczenia dla innych: ${h.guarantees}${h.guaranteeLosses > 0n ? `, pobrano z nich ${formatZl(h.guaranteeLosses)}` : ""}.`}
+        {h.guarantees > 0 && ` Poręczenia za innych: ${h.guarantees}.`}
       </span>
     </div>
   );
@@ -50,20 +49,21 @@ export function NetworkCard() {
   return (
     <Card>
       <h2 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5">
-        <Network className="w-4 h-4 text-emerald-600" aria-hidden /> Sieć kas na łańcuchu
+        <Network className="w-4 h-4 text-emerald-600" aria-hidden /> Wszystkie kasy razem
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Stat label="Kasy" value={s.kasas} hint={`${s.people} ${plural(s.people, "osoba", "osoby", "osób")}`} />
-        <Stat label="Oszczędności" value={formatZl(s.savings)} hint="w skarbcach programu" tone="emerald" />
-        <Stat label="Pożyczone teraz" value={formatZl(s.lent)} hint={`${s.activeLoans} w spłacie, ${s.settledLoans} rozliczonych`} />
+        <Stat label="Odłożone" value={formatZl(s.savings)} hint="na kontach programu" tone="emerald" />
+        <Stat label="Pożyczone teraz" value={formatZl(s.lent)} hint={`${s.activeLoans} w spłacie, ${s.settledLoans} spłaconych`} />
         <Stat
-          label="Spłacone poleceniem zapłaty"
+          label="Raty zapłacone same"
           value={formatZl(s.autopaid)}
-          hint={`${formatZl(s.collectedFromCollateral)} z zabezpieczeń · ${s.standingOrders} ${plural(s.standingOrders, "stałe zlecenie", "stałe zlecenia", "stałych zleceń")}`}
+          hint={`${s.standingOrders} ${plural(s.standingOrders, "stała składka", "stałe składki", "stałych składek")} · ${formatZl(s.collectedFromCollateral)} pokryte z oszczędności`}
         />
       </div>
       <p className="text-[11px] text-slate-500 mt-3">
-        Każda liczba to suma kont programu: nie ma bazy danych ani serwera, który by je prowadził. Odsetki i prowizje: 0 zł.
+        Liczone na bieżąco z danych na Solanie – nie ma żadnego serwera ani księgowego, który by je prowadził. Odsetki i prowizje:
+        0 zł.
       </p>
     </Card>
   );

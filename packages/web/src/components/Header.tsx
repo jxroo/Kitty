@@ -23,7 +23,7 @@ export function Header({ onHome }: { onHome: () => void }) {
                 Solana devnet
               </span>
             </div>
-            <p className="text-xs text-slate-500">Oszczędności, pożyczki i stałe zlecenia bez banku – pieniędzy pilnuje program, nie skarbnik</p>
+            <p className="text-xs text-slate-500">Wspólna kasa dla grupy: odkładacie i pożyczacie sobie bez odsetek – bez skarbnika i bez banku</p>
           </div>
         </button>
         <div className="flex items-center gap-2">

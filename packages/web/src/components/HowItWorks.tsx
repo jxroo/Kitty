@@ -74,23 +74,34 @@ const ROLES: { today: string; now: React.ReactNode; code: React.ReactNode }[] = 
   },
 ];
 
+const SIMPLE: { today: string; here: string }[] = [
+  { today: "Skarbnik trzyma pieniądze kasy (czasem na swoim prywatnym koncie)", here: "Pieniądze leżą na koncie programu. Nikt nie może ich wziąć dla siebie." },
+  { today: "Zarząd albo bank decyduje, kto dostanie pożyczkę", here: "Nikt nie decyduje. Pożyczka się wypłaca, gdy Twoje oszczędności i poręczenia innych pokrywają całą kwotę." },
+  { today: "Pracodawca potrąca raty z pensji, bank realizuje polecenie zapłaty", here: "W dniu terminu rata sama schodzi z portfela pożyczkobiorcy – dokładnie tyle, ile trzeba." },
+  { today: "Windykacja ściga tych, którzy nie płacą", here: "Niezapłacona rata jest pokrywana z zablokowanych oszczędności. Nikogo nie trzeba ścigać." },
+  { today: "Bank realizuje stałe zlecenie oszczędzania", here: "Stała składka przelewa się z portfela do kasy co okres, sama." },
+  { today: "BIK mówi, czy ktoś spłaca długi", here: "Historia spłat każdej osoby jest publiczna. Zanim poręczysz, widzisz ją w aplikacji." },
+  { today: "Na zwrot oszczędności czeka się na zgodę zarządu", here: "Wolne pieniądze wyjmujesz, kiedy chcesz, bez pytania kogokolwiek." },
+];
+
 export function HowItWorks() {
   return (
     <div className="space-y-5 max-w-4xl">
       <Card>
-        <h2 className="font-bold text-slate-900 text-lg mb-2">Jaką relację finansową przeprojektowaliśmy?</h2>
-        <p className="text-sm text-slate-700 leading-relaxed">
-          <strong>Kasę zapomogowo-pożyczkową</strong> i każdą „wspólną kasę” w grupie: dział w firmie, szkołę, znajomych, rodzinę.
-          Członkowie co miesiąc odkładają pieniądze i pożyczają sobie bez odsetek, a pożyczki poręczają inni członkowie (żyranci).
-          Dziś to działa tylko dzięki <strong>pośrednikom</strong>: zarządowi i skarbnikowi, którzy trzymają pieniądze i decydują o
-          pożyczkach, oraz pracodawcy, który potrąca raty z pensji. Trzeba im ufać, a kiedy skarbnik zniknie z pieniędzmi albo
-          zarząd odmówi, nikt z członków nie ma na to wpływu. A kto nie ma takiej kasy, idzie do <strong>banku</strong>: po kredyt,
-          stałe zlecenie, polecenie zapłaty i ocenę w BIK – i za każdą z tych rzeczy płaci odsetkami albo prowizją.
-        </p>
-        <p className="text-sm text-slate-700 leading-relaxed mt-2">
-          W <strong>Kasie bez zarządu</strong> wszystkie te role przejmuje program na Solanie. Strona A (pożyczkobiorca) nie musi ufać stronie B
-          (poręczycielom i reszcie kasy), bo obie polegają na regule zapisanej w programie, której żadna instrukcja nie pozwala obejść – także nam, autorom.
-        </p>
+        <h2 className="font-bold text-slate-900 text-lg mb-3">Jak to działa – w 5 zdaniach</h2>
+        <ol className="space-y-2.5 text-sm text-slate-800 leading-relaxed list-decimal list-inside marker:font-bold marker:text-emerald-600">
+          <li>Grupa ludzi odkłada pieniądze do wspólnej kasy. Leżą na koncie programu, nie u skarbnika ani w banku.</li>
+          <li>
+            Każdy może pożyczyć kilka razy tyle, ile ma odłożone – bez odsetek i bez niczyjej zgody. Warunek: jego oszczędności i
+            poręczenia innych członków muszą pokryć całą pożyczkę.
+          </li>
+          <li>Raty i składki mogą płacić się same: w dniu terminu program pobiera z portfela dokładnie tyle, ile trzeba.</li>
+          <li>
+            Kto nie zapłaci raty, traci swoje zablokowane oszczędności; jeśli to za mało – tracą ci, którzy za tę osobę poręczyli.
+            Kasa nigdy nie traci, a pieniądze pozostałych są bezpieczne.
+          </li>
+          <li>Zasad nie może zmienić nikt: ani założyciel, ani członkowie, ani my – autorzy.</li>
+        </ol>
       </Card>
 
       <Card>
@@ -99,17 +110,15 @@ export function HowItWorks() {
           <table className="w-full text-xs">
             <thead>
               <tr className="text-left text-slate-500">
-                <th className="font-medium pb-2 pr-3">Dziś (KZP / skarbnik)</th>
-                <th className="font-medium pb-2 pr-3">Kasa bez zarządu</th>
-                <th className="font-medium pb-2">Kod</th>
+                <th className="font-medium pb-2 pr-3 w-1/2">Dziś</th>
+                <th className="font-medium pb-2">W Kasie bez zarządu</th>
               </tr>
             </thead>
             <tbody>
-              {ROLES.map((r) => (
+              {SIMPLE.map((r) => (
                 <tr key={r.today} className="border-t border-slate-100 align-top">
                   <td className="py-2 pr-3 text-slate-600">{r.today}</td>
-                  <td className="py-2 pr-3 text-slate-900">{r.now}</td>
-                  <td className="py-2">{r.code}</td>
+                  <td className="py-2 text-slate-900 font-medium">{r.here}</td>
                 </tr>
               ))}
             </tbody>
@@ -120,69 +129,103 @@ export function HowItWorks() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="bg-emerald-50 border-emerald-200">
           <h2 className="font-bold text-emerald-900 text-sm mb-2">Dlaczego kasa nigdy nie traci</h2>
-          <ul className="text-xs text-emerald-900 space-y-1.5 list-disc list-inside">
-            <li>Pożyczka wypłaca się tylko, gdy zablokowane oszczędności pokrywają ją w 100%.</li>
-            <li>Każda spłata od razu odblokowuje tyle samo zabezpieczenia: najpierw poręczycielom.</li>
-            <li>Zaległa rata schodzi z zabezpieczeń: najpierw z oszczędności pożyczkobiorcy, potem proporcjonalnie z poręczeń.</li>
-            <li>
-              Dlatego zawsze: <strong>skarbiec = oszczędności − pożyczone</strong>, a wolne oszczędności każdego członka zawsze
-              leżą w skarbcu. Testy sprawdzają to po każdym kroku, łącznie z „runem na kasę”.
-            </li>
-            <li>Ryzyko ponosi tylko poręczyciel, który sam się na nie zgodził – jak żyrant w KZP.</li>
+          <ul className="text-xs text-emerald-900 space-y-1.5 list-disc list-inside leading-relaxed">
+            <li>Pożyczka wypłaca się tylko wtedy, gdy zablokowane oszczędności pokrywają ją w całości.</li>
+            <li>Każda spłacona rata odblokowuje tyle samo – najpierw poręczającym.</li>
+            <li>Niezapłacona rata jest brana z zablokowanych oszczędności: najpierw pożyczkobiorcy, potem poręczających.</li>
+            <li>Dlatego w kasie zawsze leżą wszystkie wolne pieniądze członków – każdy może je wyjąć w dowolnej chwili.</li>
+            <li>Ryzykuje tylko ten, kto sam zgodził się poręczyć – i najwyżej tyle, ile poręczył.</li>
           </ul>
         </Card>
         <Card>
-          <h2 className="font-bold text-slate-900 text-sm mb-2">Co jeśli ktoś zniknie w połowie?</h2>
-          <ul className="text-xs text-slate-700 space-y-1.5 list-disc list-inside">
-            <li><strong>Pożyczkobiorca przestaje płacić</strong> (cofa zgodę albo opróżnia portfel): po karencji raty i tak trafiają do kasy z jego zablokowanych oszczędności, a potem z poręczeń. Robi to automat albo ktokolwiek, kto kliknie „Egzekwuj”.</li>
-            <li><strong>Automat (bot) znika:</strong> nie ma żadnych uprawnień, tylko płaci opłaty sieci. Te same przyciski są w aplikacji dla każdego, a kod bota jest publiczny – może go uruchomić każdy.</li>
-            <li><strong>Poręczyciel znika:</strong> nic nie musi robić. Poręczenie odblokuje się samo, gdy pożyczka zostanie spłacona.</li>
-            <li><strong>Założyciel znika:</strong> nie ma żadnych uprawnień, więc nic się nie zmienia.</li>
-            <li><strong>My i ta strona znikamy:</strong> program i jego IDL są na łańcuchu. Każdy może zbudować transakcje sam.</li>
+          <h2 className="font-bold text-slate-900 text-sm mb-2">Co jeśli ktoś zniknie?</h2>
+          <ul className="text-xs text-slate-700 space-y-1.5 list-disc list-inside leading-relaxed">
+            <li>
+              <strong>Pożyczkobiorca przestaje płacić:</strong> raty i tak wracają do kasy – z jego zablokowanych oszczędności, potem z
+              poręczeń.
+            </li>
+            <li>
+              <strong>Poręczający znika:</strong> nic nie musi robić. Jego pieniądze odblokują się same, gdy pożyczka zostanie spłacona.
+            </li>
+            <li>
+              <strong>Automat przestaje działać:</strong> nic się nie psuje. Nie ma żadnych uprawnień – te same przyciski są w aplikacji
+              dla każdego.
+            </li>
+            <li>
+              <strong>Założyciel, my albo ta strona znikamy:</strong> pieniądze i zasady są na Solanie. Kasa działa dalej.
+            </li>
           </ul>
         </Card>
       </div>
 
       <Card>
-        <h2 className="font-bold text-slate-900 text-sm mb-2">Kto może co</h2>
-        <table className="w-full text-xs">
-          <tbody className="[&_td]:py-1.5 [&_tr]:border-t [&_tr]:border-slate-100">
-            <tr><td className="text-slate-600 pr-3">Założyć kasę i ustalić zasady</td><td className="text-slate-900">Każdy, raz. Potem założyciel jest zwykłym członkiem.</td></tr>
-            <tr><td className="text-slate-600 pr-3">Dołączyć, wpłacać, wypłacać wolne oszczędności</td><td className="text-slate-900">Każdy członek, sam za siebie</td></tr>
-            <tr><td className="text-slate-600 pr-3">Poprosić o pożyczkę</td><td className="text-slate-900">Członek bez otwartej pożyczki, do limitu kasy</td></tr>
-            <tr><td className="text-slate-600 pr-3">Poręczyć</td><td className="text-slate-900">Inny członek, z własnych wolnych oszczędności</td></tr>
-            <tr><td className="text-slate-600 pr-3">Wypłacić pożyczkę / anulować wniosek</td><td className="text-slate-900">Tylko pożyczkobiorca</td></tr>
-            <tr><td className="text-slate-600 pr-3">Spłacić</td><td className="text-slate-900">Każdy (także za kogoś)</td></tr>
-            <tr><td className="text-slate-600 pr-3">Dać lub cofnąć zgodę na pobieranie (polecenie zapłaty)</td><td className="text-slate-900">Tylko właściciel portfela (standardowe SPL approve / revoke)</td></tr>
-            <tr><td className="text-slate-600 pr-3">Ustawić lub wyłączyć składkę stałą</td><td className="text-slate-900">Tylko członek, dla siebie</td></tr>
-            <tr><td className="text-slate-600 pr-3">Pobrać ratę albo składkę z polecenia zapłaty</td><td className="text-slate-900">Każdy (np. automat): tylko kwotę wymagalną, tylko z portfela tej osoby, w limicie jej zgody</td></tr>
-            <tr><td className="text-slate-600 pr-3">Egzekwować zaległą ratę</td><td className="text-slate-900">Każdy, po terminie + karencji</td></tr>
-            <tr><td className="text-slate-600 pr-3">Zmienić zasady, zamrozić lub przelać cudze środki</td><td className="text-slate-900 font-semibold">Żadna instrukcja na to nie pozwala, także nam</td></tr>
-          </tbody>
-        </table>
-        <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 mt-3">
-          Uczciwie: na devnecie kod programu może jeszcze zaktualizować klucz autorów (upgrade authority). Trzymamy go na czas
-          hackathonu, żeby móc poprawiać błędy. Przed prawdziwymi pieniędzmi trafi do multisiga przedstawicieli członków albo
-          zostanie usunięty na zawsze.
-        </p>
-        <p className="text-[11px] text-slate-500 mt-3">
-          Program: <AddressLink address={PROGRAM_ID} /> ·{" "}
-          <a href={REPO_URL} target="_blank" rel="noreferrer" className="text-sky-700 hover:underline">
-            kod źródłowy
-          </a>
+        <h2 className="font-bold text-slate-900 text-sm mb-2">Dlaczego nie zwykła aplikacja z bazą danych?</h2>
+        <p className="text-xs text-slate-700 leading-relaxed">
+          Bo wtedy pośrednikiem jest ten, kto prowadzi bazę: może zmienić komuś saldo, wstrzymać wypłatę albo „pożyczyć” sobie z
+          kasy – dokładnie tak znikały pieniądze z kas zapomogowo-pożyczkowych. Tutaj pieniądze leżą na koncie programu, zasady to
+          publiczny kod, którego nikt nie obejdzie, a każdy widzi każdą operację w historii kasy.
         </p>
       </Card>
 
-      <Card>
-        <h2 className="font-bold text-slate-900 text-sm mb-2">Dlaczego blockchain, a nie zwykła baza danych?</h2>
-        <p className="text-xs text-slate-700 leading-relaxed">
-          Bo w bazie danych pośrednikiem jest ten, kto ją prowadzi: może zmienić saldo, zatrzymać wypłatę albo „pożyczyć” sobie z
-          kasy. Tu saldo to konto tokenowe programu, zasady to publiczny kod, którego żadna instrukcja nie omija, a każdy członek widzi każdą
-          operację w czasie rzeczywistym. Egzekucja raty nie potrzebuje zaufanego serwera, bo może ją uruchomić każdy. A polecenie
-          zapłaty w banku wymaga banku, któremu ufają obie strony; tu limit zgody pilnuje program SPL Token, kwotę – nasz program, a
-          bot, który wysyła transakcję, nie może zrobić nic ponad to, co i tak wolno każdemu.
-        </p>
-      </Card>
+      <details className="group bg-white border border-slate-200 rounded-2xl shadow-sm">
+        <summary className="cursor-pointer px-4 py-3 font-bold text-slate-900 text-sm">
+          Dla jury i programistów: gdzie to jest w kodzie, kto może co, czego musicie nam ufać
+        </summary>
+        <div className="px-4 pb-4 space-y-4">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-left text-slate-500">
+                  <th className="font-medium pb-2 pr-3">Dziś</th>
+                  <th className="font-medium pb-2 pr-3">Reguła programu</th>
+                  <th className="font-medium pb-2">Kod</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ROLES.map((r) => (
+                  <tr key={r.today} className="border-t border-slate-100 align-top">
+                    <td className="py-2 pr-3 text-slate-600">{r.today}</td>
+                    <td className="py-2 pr-3 text-slate-900">{r.now}</td>
+                    <td className="py-2">{r.code}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-slate-900 text-sm mb-1">Kto może co</h3>
+            <table className="w-full text-xs">
+              <tbody className="[&_td]:py-1.5 [&_tr]:border-t [&_tr]:border-slate-100">
+                <tr><td className="text-slate-600 pr-3">Założyć kasę i ustalić zasady</td><td className="text-slate-900">Każdy, raz. Potem założyciel jest zwykłym członkiem.</td></tr>
+                <tr><td className="text-slate-600 pr-3">Dołączyć, wpłacać, wypłacać wolne oszczędności</td><td className="text-slate-900">Każdy członek, sam za siebie</td></tr>
+                <tr><td className="text-slate-600 pr-3">Poprosić o pożyczkę / poręczyć</td><td className="text-slate-900">Członkowie, w limitach kasy (nie za siebie)</td></tr>
+                <tr><td className="text-slate-600 pr-3">Wypłacić pożyczkę / zrezygnować</td><td className="text-slate-900">Tylko pożyczkobiorca</td></tr>
+                <tr><td className="text-slate-600 pr-3">Włączyć lub wyłączyć płatności automatyczne</td><td className="text-slate-900">Tylko właściciel portfela (standardowe SPL approve / revoke)</td></tr>
+                <tr><td className="text-slate-600 pr-3">Pobrać ratę albo składkę automatycznie</td><td className="text-slate-900">Każdy (np. automat): tylko kwotę wymagalną, tylko z portfela tej osoby, w limicie jej zgody</td></tr>
+                <tr><td className="text-slate-600 pr-3">Spłacić, pokryć zaległą ratę z oszczędności</td><td className="text-slate-900">Każdy (zaległą: po czasie na spóźnienie)</td></tr>
+                <tr><td className="text-slate-600 pr-3">Zmienić zasady, zamrozić lub przelać cudze środki</td><td className="text-slate-900 font-semibold">Żadna instrukcja na to nie pozwala, także nam</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2">
+            Uczciwie: na devnecie kod programu może jeszcze zaktualizować klucz autorów (upgrade authority). Trzymamy go na czas
+            hackathonu, żeby móc poprawiać błędy. Przed prawdziwymi pieniędzmi trafi do multisiga przedstawicieli członków albo
+            zostanie usunięty na zawsze.
+          </p>
+          <p className="text-[11px] text-slate-600 leading-relaxed">
+            Polecenie zapłaty w banku wymaga banku, któremu ufają obie strony. Tu limit zgody pilnuje program SPL Token, kwotę i
+            termin – nasz program, a automat, który wysyła transakcję, może tylko to, co i tak wolno każdemu.
+          </p>
+          <p className="text-[11px] text-slate-500">
+            Program: <AddressLink address={PROGRAM_ID} /> ·{" "}
+            <a href={REPO_URL} target="_blank" rel="noreferrer" className="text-sky-700 hover:underline">
+              kod źródłowy
+            </a>
+          </p>
+        </div>
+      </details>
     </div>
   );
 }
