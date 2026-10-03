@@ -321,8 +321,9 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
             <Bot className="w-4 h-4 shrink-0" aria-hidden />
             <span>
               Rata jest wymagalna i jest zgoda na pobieranie. Automat zaraz ściągnie{" "}
-              <strong>{formatZl(owed < available ? owed : available)}</strong> z portfela {isBorrower ? "Twojego" : name(l.borrower)}, bez
-              podpisu pożyczkobiorcy. Każdy może to zrobić od razu:
+              <strong>{formatZl(owed < available ? owed : available)}</strong>{" "}
+              {isBorrower ? "z Twojego portfela" : `z portfela pożyczkobiorcy (${name(l.borrower)})`}, bez podpisu właściciela portfela. Każdy może to
+              zrobić od razu:
             </span>
           </p>
           <Button variant="primary" onClick={pull} disabled={!!busy || !wallet}>
@@ -420,8 +421,9 @@ function MandateBanner({
         <Repeat className="w-3.5 h-3.5 shrink-0 mt-px" aria-hidden />
         <span>
           <strong>Polecenie zapłaty aktywne</strong>: zgoda do {formatZl(token.delegatedAmount)}, w portfelu {formatZl(token.amount)}. W dniu
-          terminu rata zejdzie z portfela {isBorrower ? "Twojego" : name} sama: transakcję wysyła automat (albo ktokolwiek), bez podpisu{" "}
-          {isBorrower ? "Twojego" : "pożyczkobiorcy"} i bez banku. Program weźmie tylko to, co wymagalne.
+          terminu rata sama zejdzie {isBorrower ? "z Twojego portfela" : `z portfela pożyczkobiorcy (${name})`}: transakcję wysyła
+          automat (albo ktokolwiek), bez {isBorrower ? "Twojego podpisu" : "podpisu pożyczkobiorcy"} i bez banku. Program weźmie tylko to, co
+          wymagalne.
         </span>
       </p>
     );

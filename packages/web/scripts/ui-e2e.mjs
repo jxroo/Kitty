@@ -192,6 +192,7 @@ console.log("4. disbursed with a mandate");
 // 5. Installment 1 falls due: nobody clicks, the bot pulls it from Bartek's wallet.
 await bartek.waitForSelector('span:has-text("Z polecenia zapłaty: 250 zł")', { timeout: 240_000 });
 await shot(bartek, "07-installment-pulled-by-bot");
+await bartek.locator('article[aria-label^="Pożyczka"]').first().screenshot({ path: `${shots}/07b-installment-pulled-card.png` });
 console.log("5. installment 1 pulled by the bot");
 
 // 6. Bartek stops paying: he revokes the mandate. After installment 2 + grace the bot
@@ -201,6 +202,7 @@ await bartek.waitForSelector("text=Bez polecenia zapłaty", { timeout: T });
 await refresh(celina);
 await celina.waitForSelector("text=Pobrane z zabezpieczeń", { timeout: 240_000 });
 await shot(celina, "08-collected-by-bot");
+await celina.locator('article[aria-label^="Pożyczka"]').first().screenshot({ path: `${shots}/08b-collected-card.png` });
 console.log("6. installment 2 collected from collateral by the bot");
 
 // 6. Explainer.

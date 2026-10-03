@@ -75,28 +75,29 @@
 <section class="slide hero">
   <div class="kicker">Superteam Poland · Finance Without Intermediaries · HackYeah 2026</div>
   <h1 style="margin-top:40px">Kasa bez zarządu</h1>
-  <p style="font-size:28px;margin-top:18px;max-width:980px;color:#e2e8f0">A savings and loan fund with <strong>no board and no treasurer</strong>. Members save together and lend each other money at 0%. The rules are a Solana program with no admin key.</p>
+  <p style="font-size:28px;margin-top:18px;max-width:1040px;color:#e2e8f0">Savings, 0% loans, direct debits and standing orders with <strong>no board, no treasurer and no bank</strong>. Every rule is a Solana program with no admin key.</p>
   <div class="grid3" style="margin-top:56px">
     <div class="card" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)"><div class="big" style="color:#6ee7b7">0</div><p style="margin-top:8px">people who approve a loan</p></div>
     <div class="card" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)"><div class="big" style="color:#6ee7b7">100%</div><p style="margin-top:8px">of every loan covered by locked savings</p></div>
-    <div class="card" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)"><div class="big" style="color:#6ee7b7">anyone</div><p style="margin-top:8px">can collect an overdue installment</p></div>
+    <div class="card" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)"><div class="big" style="color:#6ee7b7">0 clicks</div><p style="margin-top:8px">installments leave the wallet by themselves, sent by a bot with no rights</p></div>
   </div>
-  <div class="footer" style="color:#64748b"><span>web-production-ad49f.up.railway.app · github.com/jxroo/kasa-bez-zarzadu</span><span>Solana devnet · program EEUFKgMU7hWUbAiGYTZEHvrXEzfnoE4qKkyS7sa4vEp2</span></div>
+  <div class="footer" style="color:#64748b"><span>web-production-ad49f.up.railway.app · github.com/jxroo/kasa-bez-zarzadu</span><span>Solana devnet · program 2GCG5LMn8WNcgaZ2aWHCzzDW6hjkTCtYVRzykwsj7pcR</span></div>
 </section>
 
 <!-- 2. Problem -->
 <section class="slide">
   <div class="kicker">The problem</div>
-  <h2>A group's money only works if everyone trusts the treasurer</h2>
+  <h2>Pooling money only works through intermediaries you must trust</h2>
   <div class="row">
     <div class="col">
       <p><strong>Who we build for:</strong> small groups in Poland that already pool money. Workplace <em>kasy zapomogowo-pożyczkowe</em> (KZP) in schools, offices and factories, teams with a "kasa koleżeńska", friends and families lending to each other.</p>
-      <p style="margin-top:16px">Members save every month and borrow at 0%, with co-members vouching for the loan. It works only through intermediaries:</p>
+      <p style="margin-top:16px">Members save every month and borrow at 0%, with co-members vouching. It works only through:</p>
       <ul style="margin-top:10px">
-        <li><strong>the treasurer</strong> holds the money and the books,</li>
-        <li><strong>the board</strong> decides who gets a loan,</li>
-        <li><strong>the employer's payroll</strong> deducts installments and is the only real enforcement.</li>
+        <li><strong>the treasurer</strong>, who holds the money and the books,</li>
+        <li><strong>the board</strong>, which decides who gets a loan,</li>
+        <li><strong>the employer's payroll</strong>, which deducts installments.</li>
       </ul>
+      <p style="margin-top:12px">Without such a group, the same services come from a <strong>bank</strong>: credit with interest, standing orders, direct debits, a BIK score.</p>
     </div>
     <div class="col">
       <div class="card bad">
@@ -115,16 +116,17 @@
 <!-- 3. Redesign -->
 <section class="slide">
   <div class="kicker">The redesign</div>
-  <h2>Each intermediary becomes a rule in the program</h2>
+  <h2>Every intermediary, and every bank service, becomes a rule</h2>
   <table>
-    <thead><tr><th style="width:22%">Role</th><th>KZP / group kasa today</th><th>Kasa bez zarządu</th></tr></thead>
+    <thead><tr><th style="width:24%">Service</th><th style="width:26%">Intermediary today</th><th>Kasa bez zarządu</th></tr></thead>
     <tbody>
-      <tr><td>Custody</td><td>Treasurer's or KZP bank account</td><td class="good">Vault = token account owned by the program; only the rules move tokens out</td></tr>
-      <tr><td>Loan approval</td><td>Board decision</td><td class="good">Nobody: pays out when locked savings (own + guarantors') cover 100%</td></tr>
-      <tr><td>Enforcement</td><td>Payroll deduction, board chasing debtors</td><td class="good">After due date + grace, anyone triggers collection from collateral</td></tr>
-      <tr><td>Your savings back</td><td>When the board agrees, usually when leaving</td><td class="good">Any time, for unlocked savings</td></tr>
-      <tr><td>Changing rules</td><td>General meeting or board</td><td class="good">No instruction changes them; no admin key</td></tr>
-      <tr><td>Who can lose</td><td>Every member, if the books fail</td><td class="good">Only a guarantor who chose to vouch, capped at the pledge</td></tr>
+      <tr><td>Keeping savings</td><td>Treasurer, bank</td><td class="good">Vault owned by the program; only the rules move tokens out</td></tr>
+      <tr><td>Credit</td><td>Board, bank scoring</td><td class="good">Nobody approves: pays out when own + guarantors' locked savings cover 100%, at 0%</td></tr>
+      <tr><td>Direct debit of installments</td><td>Employer's payroll, bank</td><td class="good">Revocable SPL mandate to the member's own PDA; from the due date anyone pulls <em>only what is due</em></td></tr>
+      <tr><td>Debt collection</td><td>Board, collection agency</td><td class="good">After grace anyone collects from collateral: borrower first, then guarantors</td></tr>
+      <tr><td>Standing order to save</td><td>Bank</td><td class="good">Standing contribution, pulled once per period under the same mandate</td></tr>
+      <tr><td>Credit history</td><td>BIK</td><td class="good">Every loan stays on-chain; a guarantor sees the borrower's record across all kasas</td></tr>
+      <tr><td>Changing the rules</td><td>General meeting, board</td><td class="good">No instruction changes them; no admin key</td></tr>
     </tbody>
   </table>
   <div class="footer"><span>Kasa bez zarządu</span><span>3 / 10</span></div>
@@ -133,26 +135,25 @@
 <!-- 4. How it works -->
 <section class="slide">
   <div class="kicker">How it works</div>
-  <h2>Save, borrow with guarantors, repay or be collected</h2>
+  <h2>Save, borrow with guarantors, and let the installments go by themselves</h2>
   <div class="flow">
-    <div class="step"><div class="n">1 · SAVE</div><div class="t">Deposit into the vault</div><p>Anyone joins, no approval. Free savings are withdrawable any time.</p></div>
-    <div class="step"><div class="n">2 · BORROW</div><div class="t">Up to 2× savings</div><p>Own free savings lock first. The rest must be pledged by co-members.</p></div>
-    <div class="step"><div class="n">3 · PAY OUT</div><div class="t">100% covered → paid</div><p>The borrower pays the loan out to their wallet. Nobody signs off.</p></div>
-    <div class="step"><div class="n">4 · REPAY</div><div class="t">Installments at 0%</div><p>Each repayment unlocks the same amount of collateral, guarantors first.</p></div>
+    <div class="step"><div class="n">1 · SAVE</div><div class="t">Into the vault</div><p>Anyone joins. Optional standing contribution, pulled every period.</p></div>
+    <div class="step"><div class="n">2 · BORROW</div><div class="t">Up to 2× savings</div><p>Own free savings lock first; co-members pledge the rest.</p></div>
+    <div class="step"><div class="n">3 · PAY OUT + MANDATE</div><div class="t">100% covered → paid</div><p>One transaction: loan to the wallet and an SPL allowance for the installments.</p></div>
+    <div class="step"><div class="n">4 · REPAY</div><div class="t">On the due date</div><p>The bot pulls what is due from the wallet; collateral unlocks, guarantors first.</p></div>
   </div>
   <div class="grid3">
-    <div class="card">
-      <h3>Bartek borrows 1000 zł in 4 installments</h3>
-      <div class="bar"><span style="width:50%;background:#fbbf24"></span><span style="width:30%;background:#0ea5e9"></span><span style="width:20%;background:#6366f1"></span></div>
-      <p class="small">His own savings 500 zł · Anna pledges 300 zł · Celina pledges 200 zł → collateral 1000 zł = loan, so he pays it out.</p>
+    <div class="card good">
+      <h3>Installment 1: nobody clicks</h3>
+      <p class="small">Bartek borrowed 1000 zł in 4 installments (own 500, Anna 300, Celina 200). On the due date the bot pulls <strong>250 zł from his wallet</strong>. He signs nothing. Anna and Celina get 250 zł unlocked, 3:2.</p>
     </div>
     <div class="card warn">
-      <h3>He repays once, then stops</h3>
-      <p class="small">The repayment frees 250 zł of the guarantors' pledges (3:2). After installment 2 + grace, <strong>Celina presses "Egzekwuj"</strong>: 250 zł comes from Bartek's locked savings. Later installments take his last 250 zł, then 250 zł from Anna and Celina pro rata.</p>
+      <h3>He revokes and stops paying</h3>
+      <p class="small">Installment 2: the bot's pull is refused (<code>NoMandate</code>). After grace the bot collects 250 zł from <strong>Bartek's locked savings</strong>; later installments take his last 250 zł, then Anna and Celina pro rata.</p>
     </div>
     <div class="card good">
       <h3>The fund ends whole</h3>
-      <p class="small">Bartek: kept the cash, lost 500 zł of savings.<br>Anna −150 zł, Celina −100 zł: the risk they chose.<br><strong>Fund: 0 zł lost.</strong> Everyone withdraws the rest; vault ends at 0 zł. All on devnet (docs/devnet-e2e.md).</p>
+      <p class="small">Bartek kept the cash, lost his savings. Anna −150 zł, Celina −100 zł: the risk they chose. <strong>Fund: 0 zł lost.</strong> Everyone withdraws the rest; vault ends at 0. All on devnet.</p>
     </div>
   </div>
   <div class="footer"><span>Kasa bez zarządu</span><span>4 / 10</span></div>
@@ -161,22 +162,24 @@
 <!-- 5. The moment -->
 <section class="slide">
   <div class="kicker">The moment the intermediary is no longer needed</div>
-  <h2>An overdue installment is collected by anyone, with nobody's consent</h2>
+  <h2>The installment leaves the wallet on the due date: no payroll, no bank, no click</h2>
   <div class="row">
-    <div class="col" style="flex:1.15"><img class="shot" src="../screenshots/06b-overdue-card.png" style="width:100%;height:auto"></div>
+    <div class="col" style="flex:1.15"><img class="shot" src="../screenshots/07b-installment-pulled-card.png" style="width:100%;height:auto;max-height:520px"></div>
     <div class="col">
-<pre><span class="c">// instructions/repay.rs: no signer required</span>
-<span class="k">pub fn</span> handle_collect_overdue(ctx) {
-  <span class="k">let</span> overdue = loan.overdue(now,
-      kasa.period_secs, kasa.grace_secs)?;
-  require!(overdue > 0, NothingOverdue);
-  check_guarantors(&loan, &guarantors)?;
-  <span class="c">// borrower's savings first,</span>
-  <span class="c">// then guarantors pro rata</span>
-  seize(&mut loan, &mut borrower,
-        &mut guarantors, overdue)?;
-}</pre>
-      <p class="small" style="margin-top:14px">The tokens are already in the vault, so collection is bookkeeping on locked savings: it needs no signature from the borrower, the guarantors or us. It replaces the payroll deduction and the board's debt collection.</p>
+<pre><span class="c">// instructions/autopay.rs: no signer required</span>
+<span class="k">pub fn</span> handle_pull_installment(ctx) {
+  <span class="k">let</span> due = loan.overdue(now, period, <span class="k">0</span>)?;
+  require!(due > 0, InstallmentNotDue);
+  <span class="c">// allowance the borrower gave to</span>
+  <span class="c">// THEIR member PDA, capped by balance</span>
+  <span class="k">let</span> amount = due.min(mandate_available(
+      &from, &borrower_member.key()));
+  require!(amount > 0, NoMandate);
+  pay_in_by_mandate(.., amount)?; <span class="c">// PDA signs</span>
+  book_repayment(..)?; <span class="c">// guarantors first</span>
+}
+<span class="c">// from.owner == loan.borrower, or rejected</span></pre>
+      <p class="small" style="margin-top:12px">The SPL Token program enforces the allowance; ours enforces the amount and the date. The bot only pays the fee; if the mandate is gone, collateral pays after grace.</p>
     </div>
   </div>
   <div class="footer"><span>Kasa bez zarządu</span><span>5 / 10</span></div>
@@ -189,17 +192,23 @@
   <div class="grid2">
     <div class="card good">
       <h3>1. Every loan is fully covered</h3>
-      <p>Pay-out requires locked savings = loan amount. Repayments release collateral; collection consumes it. Collateral always equals what is still owed.</p>
+      <p>Pay-out requires locked savings = loan amount. Repayments (by hand or by mandate) release collateral; collection consumes it. Collateral always equals what is still owed.</p>
     </div>
     <div class="card good">
       <h3>2. The vault holds every free saving</h3>
       <p class="eq" style="margin:6px 0">vault = Σ savings − Σ lent</p>
-      <p>So anyone can withdraw what is theirs at any moment. A bank run cannot fail: the tests end with everyone withdrawing everything and the vault at 0.</p>
+      <p>So anyone can withdraw what is theirs at any moment. The tests end with a bank run: everyone withdraws everything, vault at 0.</p>
     </div>
   </div>
-  <div class="card" style="margin-top:18px">
-    <h3>The only risk is a chosen one</h3>
-    <p>Only a guarantor who vouched for someone who didn't pay can lose, and at most the amount they pledged. That is the risk a KZP <em>poręczyciel</em> takes today, now explicit and visible to everyone.</p>
+  <div class="grid2" style="margin-top:18px">
+    <div class="card">
+      <h3>The mandate is a convenience, not the guarantee</h3>
+      <p>The borrower can revoke it any time. The fund never depended on it: collateral covers what the wallet doesn't.</p>
+    </div>
+    <div class="card">
+      <h3>The only risk is a chosen one</h3>
+      <p>Only a guarantor who vouched for someone who didn't pay can lose, at most the pledge. Now they can read the borrower's on-chain record first.</p>
+    </div>
   </div>
   <div class="footer"><span>Kasa bez zarządu</span><span>6 / 10</span></div>
 </section>
@@ -213,10 +222,10 @@
       <table>
         <thead><tr><th>Who goes silent</th><th>What happens</th></tr></thead>
         <tbody>
-          <tr><td>Borrower</td><td>Installments collected from their locked savings, then guarantors'</td></tr>
+          <tr><td>Borrower</td><td>Revoked mandate or empty wallet: collateral pays after grace, then guarantors</td></tr>
           <tr><td>Guarantor</td><td>Nothing to do: the pledge unlocks as the loan is repaid</td></tr>
-          <tr><td>Founder</td><td>Nothing: no rights after creation</td></tr>
-          <tr><td>Us / the website</td><td>Nothing: program + IDL on-chain, any client works</td></tr>
+          <tr><td>The bot</td><td>Nothing breaks: no rights; anyone presses the same buttons or runs it</td></tr>
+          <tr><td>Founder, us, the site</td><td>Nothing: no rights; program + IDL on-chain</td></tr>
         </tbody>
       </table>
     </div>
@@ -225,13 +234,13 @@
         <thead><tr><th>Action</th><th>Who</th></tr></thead>
         <tbody>
           <tr><td>Join, deposit, withdraw free savings</td><td>Anyone, for themselves</td></tr>
-          <tr><td>Borrow / guarantee</td><td>Members, within the kasa's limits</td></tr>
-          <tr><td>Pay out / cancel a loan</td><td>Only the borrower</td></tr>
+          <tr><td>Give / revoke a mandate</td><td>Wallet owner (SPL approve / revoke)</td></tr>
+          <tr><td>Pull what is due under a mandate</td><td>Anyone: only due, only that wallet, within the allowance</td></tr>
           <tr><td>Repay, collect overdue</td><td>Anyone</td></tr>
           <tr><td>Change rules, move others' savings</td><td class="good">No instruction allows it, for anyone</td></tr>
         </tbody>
       </table>
-      <p class="small" style="margin-top:10px"><strong>Honest caveat:</strong> on devnet our deploy key can still upgrade the program code. Kept for bug fixes during the hackathon; next step: a members' multisig, or remove it with <code>--final</code>.</p>
+      <p class="small" style="margin-top:10px"><strong>Honest caveat:</strong> on devnet our deploy key can still upgrade the program code. Kept for bug fixes during the hackathon; next: a members' multisig, or <code>--final</code>.</p>
     </div>
   </div>
   <div class="footer"><span>Kasa bez zarządu</span><span>7 / 10</span></div>
@@ -244,13 +253,13 @@
   <div class="row">
     <div class="col">
       <div class="grid2">
-        <div class="card metric"><div class="big">12/12</div><div class="label">Rust tests: LiteSVM with the real SPL Token program, every rule-breaking attempt rejected</div></div>
-        <div class="card metric"><div class="big">6/6</div><div class="label">UI math tests: the app's schedule matches the program's</div></div>
-        <div class="card metric"><div class="big">E2E</div><div class="label">Devnet run with explorer links: loan, 2 guarantors, 2 collections, bank run → vault 0</div></div>
-        <div class="card metric"><div class="big">UI</div><div class="label">Playwright drives 3 wallets through the deployed app</div></div>
+        <div class="card metric"><div class="big">20/20</div><div class="label">Rust tests, LiteSVM + real SPL Token: 8 new for the mandate (never more than due, never from another wallet, revoke → collateral)</div></div>
+        <div class="card metric"><div class="big">11/11</div><div class="label">Web tests: the app's math matches the program; credit history and network totals</div></div>
+        <div class="card metric"><div class="big">E2E</div><div class="label">Devnet run: bot pulls a contribution and an installment with nobody signing, revoke, collection, bank run → vault 0</div></div>
+        <div class="card metric"><div class="big">UI</div><div class="label">Playwright drives 3 wallets through the deployed app while the bot runs on Railway</div></div>
       </div>
     </div>
-    <div class="col"><img class="shot" src="../screenshots/07-collected.png" style="height:450px"></div>
+    <div class="col"><img class="shot" src="../screenshots/08b-collected-card.png" style="width:100%;height:auto;max-height:480px"></div>
   </div>
   <div class="footer"><span>docs/devnet-e2e.md · docs/screenshots</span><span>8 / 10</span></div>
 </section>
@@ -258,15 +267,19 @@
 <!-- 9. Why -->
 <section class="slide">
   <div class="kicker">Design reasoning</div>
-  <h2>Why blockchain, and why no arbiter</h2>
-  <div class="grid2">
+  <h2>Why blockchain, and why not just "send USDC"</h2>
+  <div class="grid3">
     <div class="card">
       <h3>Why not a database?</h3>
-      <p>In a database the intermediary is whoever runs it: they can edit a balance, hold back a withdrawal or quietly "borrow" from the pot, which is how the cases on slide 2 happened. Here the balance is a program-owned account, the rules are public code no instruction can bypass, and collection needs no trusted server. Solana makes it cheap enough for a 100 zł monthly contribution.</p>
+      <p class="small">Whoever runs it is the intermediary: they can edit a balance, hold back a withdrawal or "borrow" from the pot, which is how the cases on slide 2 happened. Here the balance is a program-owned account and the rules are public code no instruction can bypass.</p>
+    </div>
+    <div class="card">
+      <h3>Why not just transfers?</h3>
+      <p class="small">Wallet-to-wallet payments without a bank already exist. What still needs one is credit, a direct debit someone honours, a standing order and a credit record. Those are what the program replaces; a direct debit needs no trusted bank when the token program caps it and our program sets the amount.</p>
     </div>
     <div class="card">
       <h3>Why not an escrow marketplace?</h3>
-      <p>We started there and dropped it. For physical goods someone must judge delivery: an arbiter (still an intermediary) or bonds that punish honest parties too. So we chose a relationship where <strong>the program sees every condition it enforces</strong>: deposits, balances, the schedule, the clock. Lending, the pattern Superteam calls the best example, in a form Polish workplaces already use.</p>
+      <p class="small">For physical goods someone must judge delivery: an arbiter is still an intermediary. We chose a relationship where <strong>the program sees every condition it enforces</strong>: deposits, balances, the schedule, the clock, the allowance.</p>
     </div>
   </div>
   <div class="footer"><span>Kasa bez zarządu</span><span>9 / 10</span></div>
@@ -282,20 +295,19 @@
       <ul class="small">
         <li>Test złoty from a devnet faucet; the program takes any SPL mint (production: a stablecoin)</li>
         <li>Members need a Solana wallet</li>
-        <li>Collection needs someone (or a bot) to send the transaction</li>
-        <li>Contributions are voluntary, savings earn no interest (as in a KZP)</li>
-        <li>The 2021 Act still expects a board; legal recognition needed</li>
-        <li>Program still upgradeable by our deploy key</li>
-        <li>Not audited, devnet only</li>
+        <li>Programs don't run on a timer: a bot (no rights) sends the pulls; if it stops, anyone can</li>
+        <li>One SPL delegate per token account: a mandate in a second kasa replaces the first</li>
+        <li>Credit history is public by design; should be opt-in for real groups</li>
+        <li>The 2021 Act still expects a board; program still upgradeable by our key; not audited</li>
       </ul>
     </div>
     <div class="card good">
       <h3>With another week</h3>
       <ul class="small">
-        <li>Standing orders without a bank: SPL delegation pulls installments and contributions</li>
-        <li><em>Zapomogi</em>: grants released by member vote</li>
         <li>PLN stablecoin, BLIK on-ramp, passkey wallets</li>
-        <li>Public collector bot and due-date reminders</li>
+        <li>Guarantees across kasas: vouch from your savings in another group</li>
+        <li><em>Zapomogi</em>: grants released by member vote</li>
+        <li>Reminders before a pull; one mandate shared by all kasas</li>
         <li>Upgrade key to a members' multisig, audit, mainnet</li>
       </ul>
     </div>
