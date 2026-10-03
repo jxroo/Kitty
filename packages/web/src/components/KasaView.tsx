@@ -17,6 +17,7 @@ import {
 } from "@/lib/instructions";
 import { describeError, formatZl, maxLoan, memberFree, outstanding, parseZl, utf8Length } from "@/lib/kasa";
 import { useChainNow, useKasa } from "./KasaProvider";
+import { CreditHistoryLine } from "./History";
 import { LoanCard } from "./LoanCard";
 import { AddressLink, Badge, Button, Card, EmptyState, ErrorText, formatDuration, Input, Label, Select, Stat } from "./ui";
 
@@ -170,6 +171,7 @@ function VaultCard({ kasa }: { kasa: WithAddress<Kasa> }) {
 
 function MembersCard({ members }: { members: WithAddress<Member>[] }) {
   const { wallet } = useKasa();
+  const [open, setOpen] = useState<string | null>(null);
   return (
     <Card>
       <h2 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5">
@@ -186,7 +188,8 @@ function MembersCard({ members }: { members: WithAddress<Member>[] }) {
         </thead>
         <tbody>
           {members.map(({ address, data }) => (
-            <tr key={address} className="border-t border-slate-100">
+            <React.Fragment key={address}>
+            <tr className="border-t border-slate-100">
               <td className="py-1.5">
                 <span className="font-semibold text-slate-900">{data.displayName}</span>
                 {data.wallet === wallet && <span className="text-emerald-700"> (Ty)</span>}
@@ -196,10 +199,25 @@ function MembersCard({ members }: { members: WithAddress<Member>[] }) {
                 {data.totalSeized > 0n && (
                   <div className="text-rose-600">pokryło zaległości: {formatZl(data.totalSeized)}</div>
                 )}
+                <button
+                  className="block text-slate-500 hover:text-slate-800 underline decoration-dotted"
+                  aria-expanded={open === address}
+                  onClick={() => setOpen(open === address ? null : address)}
+                >
+                  historia
+                </button>
               </td>
               <td className="py-1.5 text-right font-semibold text-slate-900">{formatZl(data.savings)}</td>
               <td className="py-1.5 text-right text-slate-700">{data.locked > 0n ? formatZl(data.locked) : "–"}</td>
             </tr>
+            {open === address && (
+              <tr>
+                <td colSpan={3} className="pb-2">
+                  <CreditHistoryLine wallet={data.wallet} name={data.displayName} />
+                </td>
+              </tr>
+            )}
+            </React.Fragment>
           ))}
         </tbody>
       </table>

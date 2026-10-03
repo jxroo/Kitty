@@ -33,6 +33,7 @@ import {
   shortAddress,
   type WalletToken,
 } from "@/lib/kasa";
+import { CreditHistoryLine } from "./History";
 import { useChainNow, useKasa } from "./KasaProvider";
 import { AddressLink, Badge, Button, ErrorText, formatDuration, Input } from "./ui";
 
@@ -75,7 +76,7 @@ export function LoanCard({ loan, kasa, names, me }: Props) {
 
       <CollateralBar loan={l} name={name} />
 
-      {l.status === LoanStatus.Pending && <PendingActions loan={loan} kasa={kasa} me={me} />}
+      {l.status === LoanStatus.Pending && <PendingActions loan={loan} kasa={kasa} me={me} nameOf={name} />}
       {l.status === LoanStatus.Active && <ActiveSection loan={loan} kasa={kasa} me={me} name={name} />}
       {(l.status === LoanStatus.Repaid || l.status === LoanStatus.Cancelled) && <ClosedSummary loan={l} name={name} />}
     </article>
@@ -116,7 +117,7 @@ function CollateralBar({ loan, name }: { loan: Loan; name: (w: string) => string
   );
 }
 
-function PendingActions({ loan, kasa, me }: Omit<Props, "names">) {
+function PendingActions({ loan, kasa, me, nameOf }: Omit<Props, "names"> & { nameOf: (w: string) => string }) {
   const { client, wallet, run, busy } = useKasa();
   const l = loan.data;
   const missing = l.amount - collateral(l);
@@ -143,6 +144,7 @@ function PendingActions({ loan, kasa, me }: Omit<Props, "names">) {
 
   return (
     <div className="space-y-2">
+      {!isBorrower && <CreditHistoryLine wallet={l.borrower} name={nameOf(l.borrower)} />}
       {missing > 0n ? (
         <p className="text-xs text-slate-700">
           Do wypłaty brakuje <strong>{formatZl(missing)}</strong> poręczeń. Poręczając, blokujesz tę część swoich oszczędności do

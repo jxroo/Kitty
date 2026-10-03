@@ -6,6 +6,7 @@ import { ArrowRight, Landmark, Plus, Users } from "lucide-react";
 import { LoanStatus } from "@/generated";
 import { createKasaIxs } from "@/lib/instructions";
 import { describeError, formatZl, MINT, randomId, utf8Length } from "@/lib/kasa";
+import { NetworkCard } from "./History";
 import { useKasa } from "./KasaProvider";
 import { Badge, Button, Card, EmptyState, ErrorText, formatDuration, Input, Label, Select } from "./ui";
 
@@ -22,6 +23,7 @@ export function KasyList({ onOpen }: { onOpen: (kasa: Address) => void }) {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <section className="lg:col-span-7 space-y-3" aria-labelledby="kasy-heading">
         <Intro />
+        <NetworkCard />
         <h2 id="kasy-heading" className="font-bold text-slate-900 text-sm uppercase tracking-wider">
           Kasy na łańcuchu
         </h2>
@@ -77,16 +79,19 @@ function Intro() {
   const steps = [
     { title: "Odkładacie razem", text: "Oszczędności leżą w skarbcu należącym do programu, nie na koncie skarbnika. Wolne środki wypłacasz, kiedy chcesz." },
     { title: "Pożyczacie bez odsetek", text: "Do kilku razy więcej niż masz odłożone. Nikt nie zatwierdza: wystarczy, że członkowie poręczą brakującą część." },
-    { title: "Zaległości egzekwuje kod", text: "Nie spłacisz raty – każdy może ją ściągnąć z Twoich zablokowanych oszczędności, a potem z poręczeń. Kasa nigdy nie traci." },
+    { title: "Raty i składki schodzą same", text: "Polecenie zapłaty bez banku i pracodawcy: dajesz zgodę SPL, a w dniu terminu program pobiera z portfela tylko to, co wymagalne. Cofasz ją kiedy chcesz." },
+    { title: "Zaległości egzekwuje kod", text: "Nie ma zgody albo pieniędzy w portfelu – po karencji rata schodzi z Twoich zablokowanych oszczędności, potem z poręczeń. Kasa nigdy nie traci." },
   ];
   return (
     <Card className="bg-slate-900 border-slate-900 text-white">
-      <h1 className="text-xl font-bold tracking-tight">Kasa zapomogowo-pożyczkowa bez zarządu i skarbnika</h1>
+      <h1 className="text-xl font-bold tracking-tight">Kasa bez zarządu, skarbnika i banku</h1>
       <p className="text-xs text-slate-300 mt-1">
-        Dla grup, które już składają się na wspólną kasę: działów w firmach, szkół, znajomych, rodzin. Zasady pilnuje program na
-        Solanie bez klucza admina: żadna jego instrukcja nie pozwala nikomu, także autorom, zmienić zasad ani ruszyć cudzych pieniędzy.
+        Dla grup, które już składają się na wspólną kasę: działów w firmach, szkół, znajomych, rodzin. Oszczędności, pożyczki bez
+        odsetek, stałe zlecenia i historia kredytowa – to, po co dziś idzie się do banku – działają tu bez niego. Zasady pilnuje
+        program na Solanie bez klucza admina: żadna jego instrukcja nie pozwala nikomu, także autorom, zmienić zasad ani ruszyć
+        cudzych pieniędzy.
       </p>
-      <ol className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+      <ol className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
         {steps.map((s, i) => (
           <li key={s.title} className="bg-white/10 rounded-xl p-3">
             <div className="text-emerald-300 text-[11px] font-bold">{i + 1}.</div>
