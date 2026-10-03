@@ -18,8 +18,8 @@ import {
   schedule,
   shortAddress,
 } from "@/lib/kasa";
-import { useKasa } from "./KasaProvider";
-import { AddressLink, Badge, Button, ErrorText, formatDuration, Input, useNow } from "./ui";
+import { useChainNow, useKasa } from "./KasaProvider";
+import { AddressLink, Badge, Button, ErrorText, formatDuration, Input } from "./ui";
 
 const STATUS_TONE = {
   [LoanStatus.Pending]: "sky",
@@ -189,7 +189,7 @@ function PendingActions({ loan, kasa, me }: Omit<Props, "names">) {
 
 function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: (w: string) => string }) {
   const { client, wallet, run, busy } = useKasa();
-  const now = useNow();
+  const now = useChainNow();
   const l = loan.data;
   const rows = schedule(l, kasa.data);
   const overdue = overdueNow(l, kasa.data, now);

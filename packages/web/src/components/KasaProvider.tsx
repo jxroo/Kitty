@@ -10,6 +10,7 @@ import { findAssociatedTokenPda, TOKEN_PROGRAM_ADDRESS } from "@solana-program/t
 import { kasaProgram } from "@/generated";
 import { fetchChainState, fetchTokenBalance, type ChainState } from "@/lib/chain";
 import { describeError, MINT, RPC_URL } from "@/lib/kasa";
+import { useNow } from "./ui";
 import { sendWithFallback } from "@/lib/send";
 
 function createAppClient() {
@@ -50,6 +51,8 @@ type KasaContextValue = {
   busy: string | null;
   activity: Activity[];
   requestFaucet: () => Promise<void>;
+  /** Seconds to add to the browser clock to get the cluster's clock (devnet often lags a few seconds). */
+  clockOffset: number;
 };
 
 const KasaContext = createContext<KasaContextValue | null>(null);
@@ -88,6 +91,7 @@ function KasaState({ client, children }: { client: AppClient; children: React.Re
   const [busy, setBusy] = useState<string | null>(null);
   const [activity, setActivity] = useState<Activity[]>([]);
   const activityId = useRef(0);
+  const [clockOffset, setClockOffset] = useState(0);
 
   useEffect(() => {
     if (!wallet) return setWalletAta(null);
@@ -98,11 +102,18 @@ function KasaState({ client, children }: { client: AppClient; children: React.Re
 
   const refresh = useCallback(async () => {
     try {
-      const [state, sol, tokens] = await Promise.all([
+      const [state, sol, tokens, chainTime] = await Promise.all([
         fetchChainState(client.rpc),
         wallet ? client.rpc.getBalance(wallet, { commitment: "confirmed" }).send() : Promise.resolve(null),
         walletAta ? fetchTokenBalance(client.rpc, walletAta) : Promise.resolve(null),
+        // Deadlines are checked against the cluster clock, not the browser's.
+        client.rpc
+          .getSlot({ commitment: "confirmed" })
+          .send()
+          .then((slot) => client.rpc.getBlockTime(slot).send())
+          .catch(() => null),
       ]);
+      if (chainTime !== null) setClockOffset(Number(chainTime) - Math.floor(Date.now() / 1000));
       setChain(state);
       setSolBalance(sol ? BigInt(sol.value) : null);
       setTokenBalance(tokens);
@@ -183,8 +194,15 @@ function KasaState({ client, children }: { client: AppClient; children: React.Re
       busy,
       activity,
       requestFaucet,
+      clockOffset,
     }),
-    [client, wallet, walletAta, solBalance, tokenBalance, chain, loading, lastError, refresh, run, busy, activity, requestFaucet]
+    [client, wallet, walletAta, solBalance, tokenBalance, chain, loading, lastError, refresh, run, busy, activity, requestFaucet, clockOffset]
   );
   return <KasaContext.Provider value={value}>{children}</KasaContext.Provider>;
+}
+
+/** Current cluster time in unix seconds, ticking every second. */
+export function useChainNow() {
+  const { clockOffset } = useKasa();
+  return useNow() + clockOffset;
 }
