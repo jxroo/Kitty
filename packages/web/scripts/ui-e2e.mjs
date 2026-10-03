@@ -1,6 +1,7 @@
 // Drives the real UI against devnet with an injected Wallet Standard test wallet per member.
 // Usage: npx playwright install chromium && node scripts/ui-e2e.mjs <baseUrl> .e2e-wallets.json <screenshotDir>
-// (fund the test wallets first: npx tsx scripts/burners.ts fund)
+// (fund the test wallets first: npx tsx scripts/burners.ts fund; and keep the bot running:
+//  npx tsx scripts/crank.ts, because nobody clicks to pull installments or collect them)
 import { readFileSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright";
 import nacl from "tweetnacl";
@@ -131,7 +132,8 @@ async function act(p, click) {
 
 const name = `Kasa Działu IT ${Date.now() % 10000}`;
 
-// 1. Anna founds a kasa (demo schedule: installment every 60 s, 15 s grace) and saves 1000 zł.
+// 1. Anna founds a kasa (demo schedule: installment every 60 s, 15 s grace), saves 1000 zł
+//    and sets a 100 zł standing contribution: the bot pulls it from her wallet.
 const anna = await openAs("anna", base);
 await anna.waitForSelector("text=Czytam kasy", { state: "detached", timeout: T });
 await shot(anna, "01-kasy-list");
@@ -143,7 +145,11 @@ await anna.waitForSelector(`h1:has-text("${name}")`, { timeout: T });
 const kasaUrl = anna.url();
 await anna.fill("#dep", "1000");
 await act(anna, () => anna.getByRole("button", { name: "Wpłać", exact: true }).click());
-console.log("1. kasa created", kasaUrl);
+await anna.fill("#contrib", "100");
+await act(anna, () => anna.getByRole("button", { name: "Ustaw składkę" }).click());
+await anna.waitForSelector("text=następna za", { timeout: T });
+await shot(anna, "03-standing-order");
+console.log("1. kasa created, contribution pulled by the bot", kasaUrl);
 
 // 2. Bartek joins from the invite link, saves 500 zł and asks for 1000 zł in 4 installments.
 const bartek = await openAs("bartek", kasaUrl);
@@ -156,7 +162,7 @@ await bartek.fill("#loan-amount", "1000");
 await bartek.selectOption("#loan-inst", "4");
 await act(bartek, () => bartek.getByRole("button", { name: "Złóż wniosek" }).click());
 await bartek.waitForSelector("text=Czeka na poręczenia", { timeout: T });
-await shot(bartek, "03-loan-requested");
+await shot(bartek, "04-loan-requested");
 console.log("2. loan requested");
 
 // 3. Anna pledges 300 zł, Celina joins and pledges 200 zł.
@@ -174,29 +180,33 @@ await celina.getByLabel("Kwota poręczenia w zł").fill("200");
 await act(celina, () => celina.getByRole("button", { name: "Poręczam" }).click());
 console.log("3. guaranteed");
 
-// 4. Bartek pays the loan out (no approval) and repays installment 1.
+// 4. Bartek pays the loan out (no approval) with the direct-debit box ticked (default).
 await refresh(bartek);
 await bartek.waitForSelector("text=Zabezpieczona w 100%", { timeout: T });
-await shot(bartek, "04-loan-covered");
+await shot(bartek, "05-loan-covered");
 await act(bartek, () => bartek.getByRole("button", { name: "Wypłać pożyczkę na mój portfel" }).click());
-await bartek.waitForSelector("text=Spłacana", { timeout: T });
-await act(bartek, () => bartek.getByRole("button", { name: "Spłać ratę" }).click());
-await shot(bartek, "05-loan-active");
-console.log("4. disbursed and installment 1 repaid");
+await bartek.waitForSelector("text=Polecenie zapłaty aktywne", { timeout: T });
+await shot(bartek, "06-loan-active-mandate");
+console.log("4. disbursed with a mandate");
 
-// 5. Bartek stops paying. After installment 2 + grace, Celina collects it from his savings.
+// 5. Installment 1 falls due: nobody clicks, the bot pulls it from Bartek's wallet.
+await bartek.waitForSelector('span:has-text("Z polecenia zapłaty: 250 zł")', { timeout: 240_000 });
+await shot(bartek, "07-installment-pulled-by-bot");
+console.log("5. installment 1 pulled by the bot");
+
+// 6. Bartek stops paying: he revokes the mandate. After installment 2 + grace the bot
+//    collects it from his locked savings; Celina just watches.
+await act(bartek, () => bartek.getByRole("button", { name: "Cofnij polecenie zapłaty" }).click());
+await bartek.waitForSelector("text=Bez polecenia zapłaty", { timeout: T });
 await refresh(celina);
-await celina.waitForSelector('button:has-text("Egzekwuj zaległą ratę")', { timeout: 240_000 });
-await shot(celina, "06-overdue");
-await act(celina, () => celina.getByRole("button", { name: /Egzekwuj zaległą ratę/ }).click());
-await celina.waitForSelector("text=Pobrane z zabezpieczeń", { timeout: T });
-await shot(celina, "07-collected");
-console.log("5. overdue installment collected by Celina");
+await celina.waitForSelector("text=Pobrane z zabezpieczeń", { timeout: 240_000 });
+await shot(celina, "08-collected-by-bot");
+console.log("6. installment 2 collected from collateral by the bot");
 
 // 6. Explainer.
 await celina.getByRole("button", { name: "Gdzie znika pośrednik?" }).click();
 await celina.waitForSelector("text=Gdzie dokładnie znika pośrednik", { timeout: T });
-await shot(celina, "08-how-it-works");
+await shot(celina, "09-how-it-works");
 
 console.log(errors.length ? `CONSOLE ERRORS:\n${errors.join("\n")}` : "no console errors");
 await browser.close();

@@ -8,8 +8,8 @@ import { useConnectedWallet } from "@solana/kit-plugin-wallet/react";
 import { ClientProvider } from "@solana/react";
 import { findAssociatedTokenPda, TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
 import { kasaProgram } from "@/generated";
-import { fetchChainState, fetchTokenBalance, type ChainState } from "@/lib/chain";
-import { describeError, MINT, RPC_URL } from "@/lib/kasa";
+import { fetchChainState, fetchWalletToken, type ChainState } from "@/lib/chain";
+import { describeError, MINT, RPC_URL, type WalletToken } from "@/lib/kasa";
 import { useNow } from "./ui";
 import { sendWithFallback } from "@/lib/send";
 
@@ -42,6 +42,8 @@ type KasaContextValue = {
   walletAta: Address | null;
   solBalance: bigint | null;
   tokenBalance: bigint | null;
+  /** Balance and direct-debit mandate (SPL delegate + allowance) of the wallet's tPLN account. */
+  walletToken: WalletToken | null;
   chain: ChainState;
   loading: boolean;
   lastError: string | null;
@@ -84,7 +86,7 @@ function KasaState({ client, children }: { client: AppClient; children: React.Re
   const wallet = (connected?.account.address as Address | undefined) ?? null;
   const [walletAta, setWalletAta] = useState<Address | null>(null);
   const [solBalance, setSolBalance] = useState<bigint | null>(null);
-  const [tokenBalance, setTokenBalance] = useState<bigint | null>(null);
+  const [walletToken, setWalletToken] = useState<WalletToken | null>(null);
   const [chain, setChain] = useState<ChainState>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -105,7 +107,7 @@ function KasaState({ client, children }: { client: AppClient; children: React.Re
       const [state, sol, tokens, chainTime] = await Promise.all([
         fetchChainState(client.rpc),
         wallet ? client.rpc.getBalance(wallet, { commitment: "confirmed" }).send() : Promise.resolve(null),
-        walletAta ? fetchTokenBalance(client.rpc, walletAta) : Promise.resolve(null),
+        walletAta ? fetchWalletToken(client.rpc, walletAta) : Promise.resolve(null),
         // Deadlines are checked against the cluster clock, not the browser's.
         client.rpc
           .getSlot({ commitment: "confirmed" })
@@ -116,7 +118,7 @@ function KasaState({ client, children }: { client: AppClient; children: React.Re
       if (chainTime !== null) setClockOffset(Number(chainTime) - Math.floor(Date.now() / 1000));
       setChain(state);
       setSolBalance(sol ? BigInt(sol.value) : null);
-      setTokenBalance(tokens);
+      setWalletToken(tokens);
       setLastError(null);
     } catch (err) {
       setLastError(describeError(err));
@@ -185,7 +187,8 @@ function KasaState({ client, children }: { client: AppClient; children: React.Re
       wallet,
       walletAta,
       solBalance,
-      tokenBalance,
+      tokenBalance: walletAta ? (walletToken?.amount ?? 0n) : null,
+      walletToken,
       chain,
       loading,
       lastError,
@@ -196,7 +199,7 @@ function KasaState({ client, children }: { client: AppClient; children: React.Re
       requestFaucet,
       clockOffset,
     }),
-    [client, wallet, walletAta, solBalance, tokenBalance, chain, loading, lastError, refresh, run, busy, activity, requestFaucet, clockOffset]
+    [client, wallet, walletAta, solBalance, walletToken, chain, loading, lastError, refresh, run, busy, activity, requestFaucet, clockOffset]
   );
   return <KasaContext.Provider value={value}>{children}</KasaContext.Provider>;
 }

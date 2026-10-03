@@ -1,22 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
-import { AlertTriangle, Check, Clock, Gavel } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { AlertTriangle, Bot, Check, Clock, Gavel, Repeat } from "lucide-react";
 import { LoanStatus, type Kasa, type Loan, type Member } from "@/generated";
-import type { WithAddress } from "@/lib/chain";
-import { cancelLoanIx, collectOverdueIx, disburseIxs, guaranteeIx, repayIx, withdrawGuaranteeIx } from "@/lib/instructions";
+import { fetchWalletToken, type WithAddress } from "@/lib/chain";
+import {
+  approveMandateIx,
+  ataOf,
+  cancelLoanIx,
+  collectOverdueIx,
+  disburseIxs,
+  guaranteeIx,
+  memberPda,
+  pullInstallmentIx,
+  repayIx,
+  revokeMandateIx,
+  withdrawGuaranteeIx,
+} from "@/lib/instructions";
 import {
   collateral,
   describeError,
   formatZl,
   LOAN_STATUS_LABEL,
+  mandateAvailable,
   memberFree,
   outstanding,
   overdueNow,
+  owedNow,
   parseZl,
   plural,
   schedule,
   shortAddress,
+  type WalletToken,
 } from "@/lib/kasa";
 import { useChainNow, useKasa } from "./KasaProvider";
 import { AddressLink, Badge, Button, ErrorText, formatDuration, Input } from "./ui";
@@ -110,6 +125,7 @@ function PendingActions({ loan, kasa, me }: Omit<Props, "names">) {
   const myFree = me ? memberFree(me.data) : 0n;
   const suggested = missing < myFree ? missing : myFree;
   const [pledge, setPledge] = useState(suggested > 0n ? formatZl(suggested, false).replace(/ /g, "") : "");
+  const [mandate, setMandate] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   async function guarantee() {
@@ -162,8 +178,11 @@ function PendingActions({ loan, kasa, me }: Omit<Props, "names">) {
               variant="primary"
               disabled={!!busy || missing > 0n}
               onClick={async () => {
-                const ixs = await disburseIxs(client.identity, loan.address, l, kasa.data);
-                await run(`Wypłata pożyczki ${formatZl(l.amount)}`, () => client.sendTransaction(ixs));
+                const ixs = await disburseIxs(client.identity, loan.address, l, kasa.data, { mandate });
+                await run(
+                  `Wypłata pożyczki ${formatZl(l.amount)}${mandate ? " + polecenie zapłaty" : ""}`,
+                  () => client.sendTransaction(ixs)
+                );
               }}
             >
               Wypłać pożyczkę na mój portfel
@@ -181,6 +200,15 @@ function PendingActions({ loan, kasa, me }: Omit<Props, "names">) {
           </>
         )}
       </div>
+      {isBorrower && (
+        <label className="flex items-start gap-2 text-[11px] text-slate-700 cursor-pointer">
+          <input type="checkbox" className="mt-0.5" checked={mandate} onChange={(e) => setMandate(e.target.checked)} />
+          <span>
+            <strong>Włącz polecenie zapłaty:</strong> w dniu terminu rata sama zejdzie z mojego portfela (zgoda SPL do{" "}
+            {formatZl(l.amount)} dla mojego konta w tej kasie). Bez banku i pracodawcy; mogę ją cofnąć w każdej chwili.
+          </span>
+        </label>
+      )}
       {!me && wallet && <p className="text-[11px] text-slate-500">Dołącz do kasy, żeby poręczyć.</p>}
       <ErrorText>{error}</ErrorText>
     </div>
@@ -200,6 +228,22 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
   const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
   const isBorrower = wallet === l.borrower;
+  const mandate = useBorrowerMandate(loan);
+  const owed = owedNow(l, kasa.data, now);
+  const available = mandate ? mandateAvailable(mandate.token, mandate.pda) : 0n;
+  const hasMandate = mandate?.token?.delegate === mandate?.pda && (mandate?.token?.delegatedAmount ?? 0n) > 0n;
+
+  async function pull() {
+    const ix = await pullInstallmentIx(loan.address, l, kasa.data);
+    await run(`Rata ${formatZl(owed < available ? owed : available)} z polecenia zapłaty`, () => client.sendTransaction([ix]));
+  }
+
+  async function toggleMandate() {
+    const ix = hasMandate
+      ? await revokeMandateIx(client.identity, kasa.data.mint)
+      : await approveMandateIx(client.identity, kasa.address, kasa.data.mint, left);
+    await run(hasMandate ? "Cofnięcie polecenia zapłaty" : `Polecenie zapłaty do ${formatZl(left)}`, () => client.sendTransaction([ix]));
+  }
 
   async function repay() {
     setError(null);
@@ -228,7 +272,14 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
           <span className="text-rose-700">Pobrane z zabezpieczeń: <strong>{formatZl(l.seized)}</strong></span>
         )}
         <span>Zostało: <strong>{formatZl(left)}</strong></span>
+        {l.autopaid > 0n && (
+          <span className="text-emerald-700">
+            Z polecenia zapłaty: <strong>{formatZl(l.autopaid)}</strong>
+          </span>
+        )}
       </div>
+
+      <MandateBanner name={name(l.borrower)} token={mandate?.token ?? null} active={hasMandate} isBorrower={isBorrower} />
 
       <ol className="grid grid-cols-2 sm:grid-cols-4 gap-2" aria-label="Harmonogram rat">
         {rows.map((r) => {
@@ -250,16 +301,33 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
                 {r.state === "seized" && "pobrana z zabezpieczeń"}
                 {(r.state === "open" || r.state === "partly") &&
                   (now < r.dueAt
-                    ? `termin za ${formatDuration(r.dueAt - now)}`
-                    : collectible
-                      ? "zaległa – do egzekucji"
-                      : `karencja: ${formatDuration(r.collectibleAt - now)}`)}
+                    ? `termin za ${formatDuration(r.dueAt - now)}${hasMandate ? " · zejdzie z portfela" : ""}`
+                    : available > 0n
+                      ? "wymagalna – pobierana z portfela"
+                      : collectible
+                        ? "zaległa – do egzekucji"
+                        : `karencja: ${formatDuration(r.collectibleAt - now)}`)}
               </div>
             </li>
           );
         })}
       </ol>
 
+      {owed > 0n && available > 0n && (
+        <div className="border border-emerald-300 bg-emerald-50 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2" role="status">
+          <p className="text-xs text-emerald-900 flex items-start gap-1.5">
+            <Bot className="w-4 h-4 shrink-0" aria-hidden />
+            <span>
+              Rata jest wymagalna i jest zgoda na pobieranie. Automat zaraz ściągnie{" "}
+              <strong>{formatZl(owed < available ? owed : available)}</strong> z portfela {isBorrower ? "Twojego" : name(l.borrower)}, bez
+              podpisu pożyczkobiorcy. Każdy może to zrobić od razu:
+            </span>
+          </p>
+          <Button variant="primary" onClick={pull} disabled={!!busy || !wallet}>
+            <Repeat className="w-3.5 h-3.5" aria-hidden /> Pobierz ratę z polecenia zapłaty
+          </Button>
+        </div>
+      )}
       {overdue > 0n && (
         <div className="border border-amber-300 bg-amber-50 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2" role="status">
           <p className="text-xs text-amber-900 flex items-start gap-1.5">
@@ -299,11 +367,68 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
           <Button onClick={repay} disabled={!!busy || left === 0n} variant={isBorrower ? "primary" : "ghost"}>
             {isBorrower ? "Spłać ratę" : "Spłać"}
           </Button>
+          {isBorrower && (
+            <Button onClick={toggleMandate} disabled={!!busy} variant={hasMandate ? "danger" : "secondary"}>
+              {hasMandate ? "Cofnij polecenie zapłaty" : "Włącz polecenie zapłaty"}
+            </Button>
+          )}
           {!me && <span className="text-[11px] text-slate-500">Spłacić może każdy, także osoba spoza kasy.</span>}
         </div>
       )}
       <ErrorText>{error}</ErrorText>
     </div>
+  );
+}
+
+/** The borrower's token account and their Member PDA (the delegate a mandate must name), re-read with the chain. */
+function useBorrowerMandate(loan: WithAddress<Loan>) {
+  const { client, chain } = useKasa();
+  const [state, setState] = useState<{ token: WalletToken | null; pda: string } | null>(null);
+  const { kasa, borrower } = loan.data;
+  const mint = chain.kasas.find((k) => k.address === kasa)?.data.mint;
+  useEffect(() => {
+    if (!mint) return;
+    let live = true;
+    (async () => {
+      const [pda, ata] = await Promise.all([memberPda(kasa, borrower), ataOf(borrower, mint)]);
+      const token = await fetchWalletToken(client.rpc, ata);
+      if (live) setState({ token, pda });
+    })();
+    return () => {
+      live = false;
+    };
+  }, [client, chain, kasa, borrower, mint]);
+  return state;
+}
+
+function MandateBanner({
+  name,
+  token,
+  active,
+  isBorrower,
+}: {
+  name: string;
+  token: WalletToken | null;
+  active: boolean;
+  isBorrower: boolean;
+}) {
+  if (active && token) {
+    return (
+      <p className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5 flex items-start gap-1.5">
+        <Repeat className="w-3.5 h-3.5 shrink-0 mt-px" aria-hidden />
+        <span>
+          <strong>Polecenie zapłaty aktywne</strong>: zgoda do {formatZl(token.delegatedAmount)}, w portfelu {formatZl(token.amount)}. W dniu
+          terminu rata zejdzie z portfela {isBorrower ? "Twojego" : name} sama: transakcję wysyła automat (albo ktokolwiek), bez podpisu{" "}
+          {isBorrower ? "Twojego" : "pożyczkobiorcy"} i bez banku. Program weźmie tylko to, co wymagalne.
+        </span>
+      </p>
+    );
+  }
+  return (
+    <p className="text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
+      Bez polecenia zapłaty: {isBorrower ? "spłacasz" : `${name} spłaca`} ręcznie. Jeśli rata nie wpłynie, po terminie i karencji zejdzie z
+      zabezpieczeń.
+    </p>
   );
 }
 

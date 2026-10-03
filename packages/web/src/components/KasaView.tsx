@@ -1,13 +1,22 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import type { Address } from "@solana/kit";
-import { ArrowLeft, Copy, HandCoins, Lock, ShieldCheck, Users, Vault } from "lucide-react";
+import type { Address, Instruction } from "@solana/kit";
+import { ArrowLeft, Copy, HandCoins, Lock, Repeat, ShieldCheck, Users, Vault } from "lucide-react";
 import { LoanStatus, type Kasa, type Member } from "@/generated";
 import { fetchTokenBalance, type WithAddress } from "@/lib/chain";
-import { depositIx, joinIx, requestLoanIx, withdrawIxs } from "@/lib/instructions";
-import { describeError, formatZl, maxLoan, memberFree, parseZl, utf8Length } from "@/lib/kasa";
-import { useKasa } from "./KasaProvider";
+import {
+  approveMandateIx,
+  depositIx,
+  joinIx,
+  memberPda,
+  requestLoanIx,
+  revokeMandateIx,
+  setContributionIx,
+  withdrawIxs,
+} from "@/lib/instructions";
+import { describeError, formatZl, maxLoan, memberFree, outstanding, parseZl, utf8Length } from "@/lib/kasa";
+import { useChainNow, useKasa } from "./KasaProvider";
 import { LoanCard } from "./LoanCard";
 import { AddressLink, Badge, Button, Card, EmptyState, ErrorText, formatDuration, Input, Label, Select, Stat } from "./ui";
 
@@ -47,6 +56,7 @@ export function KasaView({ kasa, onBack }: { kasa: Address; onBack: () => void }
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-8 space-y-4">
           <MyPanel kasa={k} me={me} />
+          {me && <StandingOrderCard kasa={k} me={me} />}
           {me && me.data.openLoans === 0 && <RequestLoanForm kasa={k} me={me} />}
           <section aria-labelledby="loans-heading" className="space-y-3">
             <h2 id="loans-heading" className="font-bold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-1.5">
@@ -180,6 +190,9 @@ function MembersCard({ members }: { members: WithAddress<Member>[] }) {
               <td className="py-1.5">
                 <span className="font-semibold text-slate-900">{data.displayName}</span>
                 {data.wallet === wallet && <span className="text-emerald-700"> (Ty)</span>}
+                {data.contribution > 0n && (
+                  <div className="text-emerald-700">składka stała: {formatZl(data.contribution)}</div>
+                )}
                 {data.totalSeized > 0n && (
                   <div className="text-rose-600">pokryło zaległości: {formatZl(data.totalSeized)}</div>
                 )}
@@ -295,6 +308,113 @@ function MyPanel({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddress<Member
             <Button variant="ghost" onClick={withdraw} disabled={!!busy || free === 0n}>Wypłać</Button>
           </div>
         </div>
+      </div>
+      <ErrorText>{error}</ErrorText>
+    </Card>
+  );
+}
+
+/**
+ * Standing order and direct-debit mandate for this kasa, both without a bank: the
+ * member approves their own Member PDA (SPL delegate) and the program pulls only
+ * what is due: the contribution once per period, installments of their own loan.
+ */
+function StandingOrderCard({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddress<Member> }) {
+  const { client, run, busy, walletToken, chain } = useKasa();
+  const now = useChainNow();
+  const [pda, setPda] = useState<string | null>(null);
+  const [amount, setAmount] = useState(me.data.contribution > 0n ? formatZl(me.data.contribution, false) : "100");
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    memberPda(kasa.address, me.data.wallet).then(setPda);
+  }, [kasa.address, me.data.wallet]);
+
+  const delegate = walletToken?.delegate ?? null;
+  const mine = pda !== null && delegate === pda && (walletToken?.delegatedAmount ?? 0n) > 0n;
+  const elsewhere = delegate !== null && delegate !== pda;
+  const myLoan = chain.loans.find((l) => l.data.kasa === kasa.address && l.data.borrower === me.data.wallet && l.data.status === LoanStatus.Active);
+  const owedOnLoan = myLoan ? outstanding(myLoan.data) : 0n;
+  const next = Number(me.data.nextContributionAt);
+
+  async function save() {
+    setError(null);
+    let value: bigint;
+    try {
+      value = parseZl(amount || "0");
+    } catch (err) {
+      return setError(describeError(err));
+    }
+    // One allowance covers a year of contributions plus what the member's own loan still owes.
+    const limit = value * 12n + owedOnLoan;
+    const ixs: Instruction[] = [await setContributionIx(client.identity, kasa.address, value)];
+    if (value > 0n) ixs.push(await approveMandateIx(client.identity, kasa.address, kasa.data.mint, limit));
+    await run(value > 0n ? `Składka stała ${formatZl(value)} co ${formatDuration(kasa.data.periodSecs)}` : "Wyłączenie składki", () =>
+      client.sendTransaction(ixs)
+    );
+  }
+
+  return (
+    <Card>
+      <h2 className="font-bold text-slate-900 text-sm mb-1 flex items-center gap-1.5">
+        <Repeat className="w-4 h-4 text-emerald-600" aria-hidden /> Stałe zlecenie i polecenie zapłaty (bez banku)
+      </h2>
+      <p className="text-[11px] text-slate-500 mb-3">
+        Dajesz swojemu kontu w tej kasie zgodę na pobieranie z portfela (standardowe SPL <code>approve</code>). Program użyje jej tylko
+        do składki raz na okres i do wymagalnych rat Twojej pożyczki. Transakcje wysyła automat bez żadnych uprawnień. Zgodę cofasz
+        jednym kliknięciem.
+      </p>
+      <div className="flex flex-wrap gap-2 mb-3 text-[11px]">
+        {mine ? (
+          <span className="px-2 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800">
+            Zgoda aktywna: do {formatZl(walletToken!.delegatedAmount)}
+          </span>
+        ) : (
+          <span className="px-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-600">Brak zgody dla tej kasy</span>
+        )}
+        {me.data.contribution > 0n && (
+          <span className="px-2 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800">
+            Składka {formatZl(me.data.contribution)} co {formatDuration(kasa.data.periodSecs)} ·{" "}
+            {next > now ? `następna za ${formatDuration(next - now)}` : mine ? "wymagalna – automat pobiera" : "wymagalna – brak zgody"}
+          </span>
+        )}
+      </div>
+      {elsewhere && (
+        <p className="text-[11px] text-amber-800 mb-2">
+          Twoje konto tPLN ma już zgodę dla innej kasy. Jedno konto SPL ma jednego delegata, więc nowa zgoda zastąpi tamtą.
+        </p>
+      )}
+      <div className="flex flex-wrap items-end gap-2">
+        <div>
+          <Label htmlFor="contrib">Składka co okres (zł)</Label>
+          <Input id="contrib" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-28" />
+        </div>
+        <Button onClick={save} disabled={!!busy}>
+          {me.data.contribution > 0n ? "Zmień składkę" : "Ustaw składkę"}
+        </Button>
+        {me.data.contribution > 0n && (
+          <Button
+            variant="ghost"
+            disabled={!!busy}
+            onClick={async () => {
+              const ix = await setContributionIx(client.identity, kasa.address, 0n);
+              await run("Wyłączenie składki", () => client.sendTransaction([ix]));
+            }}
+          >
+            Wyłącz składkę
+          </Button>
+        )}
+        {mine && (
+          <Button
+            variant="danger"
+            disabled={!!busy}
+            onClick={async () => {
+              const ix = await revokeMandateIx(client.identity, kasa.data.mint);
+              await run("Cofnięcie zgody na pobieranie", () => client.sendTransaction([ix]));
+            }}
+          >
+            Cofnij zgodę
+          </Button>
+        )}
       </div>
       <ErrorText>{error}</ErrorText>
     </Card>
