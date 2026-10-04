@@ -1,4 +1,6 @@
-# Kasa bez zarządu 🐷
+<p align="center"><img src="docs/logo.png" alt="Kasa bez zarządu: rozeta giloszowa z adresem programu na obwodzie" width="220"></p>
+
+# Kasa bez zarządu
 
 **Savings, 0% loans, direct debits and standing orders with no board, no treasurer and no bank.** Members of a group (a team at work, a school, friends, a family) save together and lend each other money at 0%, like a Polish *kasa zapomogowo-pożyczkowa* (KZP). The money sits in an account owned by a Solana program instead of a treasurer's bank account. Loans need no approval: they pay out once members' locked savings cover them 100%. **Installments leave the borrower's wallet by themselves on the due date** under a revocable SPL mandate, pulled by a bot that has no rights at all; if the wallet is empty or the mandate revoked, the installment is collected from collateral after grace. Nobody has to press anything, and nobody's consent is needed.
 

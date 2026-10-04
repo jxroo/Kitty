@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Coins, LogOut, PiggyBank, RefreshCw, Wallet } from "lucide-react";
+import { Coins, LogOut, RefreshCw, Wallet } from "lucide-react";
 import { useConnect, useDisconnect, useWallets, WalletReadyGate } from "@solana/kit-plugin-wallet/react";
 import { describeError, formatSol, formatZl, shortAddress } from "@/lib/kasa";
 import { useKasa } from "./KasaProvider";
@@ -13,9 +13,7 @@ export function Header({ onHome }: { onHome: () => void }) {
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
         <button onClick={onHome} className="flex items-center gap-3 text-left">
-          <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-sm">
-            <PiggyBank className="w-5 h-5" aria-hidden />
-          </div>
+          <img src="/logo.png" alt="" width={36} height={36} className="w-9 h-9 rounded-full shadow-sm" />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-slate-900 text-lg tracking-tight">Kasa bez zarządu</span>

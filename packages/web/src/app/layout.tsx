@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://web-production-ad49f.up.railway.app"),
   title: "Kasa bez zarządu",
   description:
     "Kasa zapomogowo-pożyczkowa bez zarządu i skarbnika: oszczędności trzyma program na Solanie, pożyczki zabezpieczają poręczenia, a zaległe raty egzekwuje kod.",
