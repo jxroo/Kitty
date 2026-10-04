@@ -40,13 +40,13 @@ export async function POST(req: Request) {
   const owner = body.address;
   if (!owner || !isAddress(owner)) return NextResponse.json({ error: "Niepoprawny adres portfela." }, { status: 400 });
   const secret = process.env.FAUCET_SECRET_KEY;
-  if (!secret) return NextResponse.json({ error: "Faucet nie jest skonfigurowany na tym serwerze." }, { status: 503 });
+  if (!secret) return NextResponse.json({ error: "The faucet is not configured on this server." }, { status: 503 });
 
   const now = Date.now();
   const last = lastGrant.get(owner) ?? 0;
   if (now - last < COOLDOWN_MS) {
     const wait = Math.ceil((COOLDOWN_MS - (now - last)) / 1000);
-    return NextResponse.json({ error: `Spróbuj ponownie za ${wait} s.` }, { status: 429 });
+    return NextResponse.json({ error: `Try again in ${wait} s.` }, { status: 429 });
   }
   lastGrant.set(owner, now);
 
@@ -77,16 +77,16 @@ export async function POST(req: Request) {
     for (let i = 0; i < 40; i++) {
       const { value } = await rpc.getSignatureStatuses([signature]).send();
       const status = value[0];
-      if (status?.err) throw new Error(`Transakcja faucetu nie powiodła się: ${JSON.stringify(status.err)}`);
+      if (status?.err) throw new Error(`The faucet transaction failed: ${JSON.stringify(status.err)}`);
       if (status && (status.confirmationStatus === "confirmed" || status.confirmationStatus === "finalized")) {
         return NextResponse.json({ signature, minted: GRANT.toString(), sol: BigInt(sol) < SOL_MIN });
       }
       await new Promise((r) => setTimeout(r, 750));
     }
-    return NextResponse.json({ error: "Faucet nie doczekał się potwierdzenia, odśwież za chwilę.", signature }, { status: 504 });
+    return NextResponse.json({ error: "The faucet did not get a confirmation in time, refresh in a moment.", signature }, { status: 504 });
   } catch (err) {
     lastGrant.delete(owner);
     console.error("faucet", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message.slice(0, 200) : "Błąd faucetu." }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message.slice(0, 200) : "Faucet error." }, { status: 500 });
   }
 }

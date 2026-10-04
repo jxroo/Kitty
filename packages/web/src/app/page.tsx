@@ -42,15 +42,15 @@ function App() {
   }, []);
 
   const tabs = [
-    { id: "kasy" as const, label: "Kasy", icon: Landmark },
-    { id: "how" as const, label: "Gdzie znika pośrednik?", icon: HelpCircle },
+    { id: "kasy" as const, label: "Funds", icon: Landmark },
+    { id: "how" as const, label: "Where did the middleman go?", icon: HelpCircle },
   ];
 
   return (
     <div className="min-h-screen text-slate-700 flex flex-col">
       <Header onHome={() => open(null)} />
       <div className="border-b border-slate-200 bg-void/40">
-        <nav className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-2 py-2 overflow-x-auto" aria-label="Sekcje">
+        <nav className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-2 py-2 overflow-x-auto" aria-label="Sections">
           {tabs.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -76,7 +76,7 @@ function App() {
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-6 w-full space-y-6">
         {lastError && (
           <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3" role="status">
-            Problem z RPC devnetu: {lastError} Dane odświeżą się automatycznie.
+            Devnet RPC problem: {lastError} The data will refresh automatically.
           </div>
         )}
         {tab === "kasy" && (kasa ? <KasaView kasa={kasa} onBack={() => open(null)} /> : <KasyList onOpen={open} />)}
@@ -87,7 +87,7 @@ function App() {
       <footer className="border-t border-slate-200 bg-void/60 py-4 text-xs text-slate-500">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>
-            <strong className="text-slate-900">Kasa bez zarządu</strong> · kasa zapomogowo-pożyczkowa na Solanie · HackYeah 2026 · Superteam Poland
+            <strong className="text-slate-900">Boardless</strong> · a mutual savings and loan fund on Solana · HackYeah 2026 · Superteam Poland
           </span>
           <span className="font-mono text-[11px] tracking-[0.04em]"><span className="text-emerald-700">program</span> {PROGRAM_ID}</span>
         </div>

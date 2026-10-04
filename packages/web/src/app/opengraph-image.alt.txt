@@ -1,1 +1,1 @@
-Kasa bez zarządu: wspólna kasa bez skarbnika i banku, na Solanie
+Boardless: a shared savings fund with no treasurer and no bank, on Solana

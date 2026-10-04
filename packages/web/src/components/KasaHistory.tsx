@@ -13,43 +13,43 @@ import { Card, TxLink } from "./ui";
 function describe(row: LedgerRow): string {
   switch (row.kind) {
     case ActivityKind.KasaCreated:
-      return "Założenie kasy";
+      return "Fund created";
     case ActivityKind.Joined:
-      return "Dołączenie do kasy";
+      return "Joined the fund";
     case ActivityKind.Deposited:
-      return "Wpłata";
+      return "Deposit";
     case ActivityKind.Withdrew:
-      return "Wypłata oszczędności";
+      return "Savings withdrawn";
     case ActivityKind.LoanRequested:
-      return "Prośba o pożyczkę";
+      return "Loan requested";
     case ActivityKind.Guaranteed:
-      return "Poręczenie za pożyczkę";
+      return "Loan guaranteed";
     case ActivityKind.GuaranteeWithdrawn:
-      return "Wycofanie poręczenia";
+      return "Guarantee withdrawn";
     case ActivityKind.LoanCancelled:
-      return "Rezygnacja z pożyczki";
+      return "Loan cancelled";
     case ActivityKind.Disbursed:
-      return "Wypłata pożyczki";
+      return "Loan paid out";
     case ActivityKind.Repaid:
-      return "Spłata raty";
+      return "Installment repaid";
     case ActivityKind.InstallmentPulled:
-      return "Rata pobrana automatycznie z portfela";
+      return "Installment collected automatically from the wallet";
     case ActivityKind.OverdueCollected:
-      return "Niezapłacona rata pokryta z zablokowanych oszczędności";
+      return "Unpaid installment covered from locked savings";
     case ActivityKind.LoanClosed:
-      return "Pożyczka spłacona w całości";
+      return "Loan fully repaid";
     case ActivityKind.ContributionSet:
-      return row.amount > 0n ? "Włączenie stałej składki" : "Wyłączenie stałej składki";
+      return row.amount > 0n ? "Standing contribution turned on" : "Standing contribution turned off";
     case ActivityKind.ContributionPulled:
-      return "Składka pobrana automatycznie z portfela";
+      return "Contribution collected automatically from the wallet";
   }
 }
 
 type Filter = "money" | "in" | "all";
 const FILTERS: { id: Filter; label: string }[] = [
-  { id: "money", label: "Ruchy pieniędzy" },
-  { id: "in", label: "Tylko wpływy" },
-  { id: "all", label: "Wszystko" },
+  { id: "money", label: "Money movements" },
+  { id: "in", label: "Inflows only" },
+  { id: "all", label: "Everything" },
 ];
 
 const FLOW_STYLE: Record<LedgerRow["flow"], { Icon: typeof ArrowDownLeft; ring: string }> = {
@@ -62,9 +62,9 @@ const FLOW_STYLE: Record<LedgerRow["flow"], { Icon: typeof ArrowDownLeft; ring: 
 function when(blockTime: number | null) {
   if (blockTime === null) return "–";
   const d = new Date(blockTime * 1000);
-  const time = d.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
-  if (d.toDateString() === new Date().toDateString()) return `dziś, ${time}`;
-  return `${d.toLocaleDateString("pl-PL", { day: "numeric", month: "short" })}, ${time}`;
+  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  if (d.toDateString() === new Date().toDateString()) return `today, ${time}`;
+  return `${d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}, ${time}`;
 }
 
 /**
@@ -111,11 +111,11 @@ export function KasaHistory({ kasa, names }: { kasa: WithAddress<Kasa>; names: M
     return { inflow, outflow };
   }, [rows]);
 
-  const who = (address: string) => names.get(address) ?? `spoza kasy (${shortAddress(address)})`;
+  const who = (address: string) => names.get(address) ?? `outside the fund (${shortAddress(address)})`;
   const sender = (address: string) =>
     address === BOT_ADDRESS ? (
       <span className="inline-flex items-center gap-1 text-emerald-700">
-        <Bot className="w-3.5 h-3.5" aria-hidden /> automat
+        <Bot className="w-3.5 h-3.5" aria-hidden /> bot
       </span>
     ) : (
       who(address)
@@ -124,19 +124,19 @@ export function KasaHistory({ kasa, names }: { kasa: WithAddress<Kasa>; names: M
   const matches = complete && vault !== null && last === vault;
 
   return (
-    <section aria-label="Historia kasy">
+    <section aria-label="Fund history">
     <Card>
       <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
         <div>
           <h2 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-            <ScrollText className="w-4 h-4 text-emerald-600" aria-hidden /> Historia kasy
+            <ScrollText className="w-4 h-4 text-emerald-600" aria-hidden /> Fund history
           </h2>
           <p className="text-[11px] text-slate-500 mt-0.5">
-            Każdy grosz, który wszedł do kasy albo z niej wyszedł. Lista pochodzi prosto z łańcucha: nikt nie może jej poprawić ani
-            niczego z niej usunąć.
+            Every grosz that came into the fund or left it. The list comes straight from the chain: nobody can edit it or
+            remove anything from it.
           </p>
         </div>
-        <div className="flex gap-1" role="group" aria-label="Filtr historii">
+        <div className="flex gap-1" role="group" aria-label="History filter">
           {FILTERS.map((f) => (
             <button
               key={f.id}
@@ -155,27 +155,27 @@ export function KasaHistory({ kasa, names }: { kasa: WithAddress<Kasa>; names: M
       {rows && (
         <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-700 mb-3">
           <span>
-            Wpłynęło: <strong className="text-emerald-700">{formatZl(totals.inflow)}</strong>
+            Money in: <strong className="text-emerald-700">{formatZl(totals.inflow)}</strong>
           </span>
           <span>
-            Wypłynęło: <strong className="text-rose-700">{formatZl(totals.outflow)}</strong>
+            Money out: <strong className="text-rose-700">{formatZl(totals.outflow)}</strong>
           </span>
           <span>
-            Jest w kasie: <strong>{vault === null ? "…" : formatZl(vault)}</strong>{" "}
+            In the fund: <strong>{vault === null ? "…" : formatZl(vault)}</strong>{" "}
             {matches ? (
               <span className="inline-flex items-center gap-0.5 text-emerald-700">
-                <Check className="w-3.5 h-3.5" aria-hidden /> zgadza się z historią
+                <Check className="w-3.5 h-3.5" aria-hidden /> matches the history
               </span>
             ) : complete ? (
-              <span className="text-slate-500">(odświeżam…)</span>
+              <span className="text-slate-500">(refreshing…)</span>
             ) : null}
           </span>
         </div>
       )}
 
-      {error && <p className="text-xs text-rose-600">Nie udało się wczytać historii: {error}</p>}
-      {!rows && !error && <p className="text-xs text-slate-500">Czytam historię z łańcucha…</p>}
-      {rows && shown.length === 0 && <p className="text-xs text-slate-500">Na razie nic tu nie ma.</p>}
+      {error && <p className="text-xs text-rose-600">Couldn't load the history: {error}</p>}
+      {!rows && !error && <p className="text-xs text-slate-500">Reading the history from the chain…</p>}
+      {rows && shown.length === 0 && <p className="text-xs text-slate-500">Nothing here yet.</p>}
 
       {shown.length > 0 && (
         <ul className="divide-y divide-slate-100">
@@ -201,7 +201,7 @@ export function KasaHistory({ kasa, names }: { kasa: WithAddress<Kasa>; names: M
                     <span aria-hidden>·</span>
                     <TxLink signature={r.signature} />
                   </div>
-                  {r.flow === "internal" && <div className="text-[11px] text-slate-500 mt-0.5">Pieniądze nie wychodzą z kasy.</div>}
+                  {r.flow === "internal" && <div className="text-[11px] text-slate-500 mt-0.5">The money doesn't leave the fund.</div>}
                 </div>
                 <div className="text-right shrink-0">
                   {r.amount > 0n && (
@@ -215,7 +215,7 @@ export function KasaHistory({ kasa, names }: { kasa: WithAddress<Kasa>; names: M
                     </div>
                   )}
                   {r.flow !== "info" && (
-                    <div className="text-[11px] text-slate-500 tabular-nums whitespace-nowrap">w kasie {formatZl(r.balance)}</div>
+                    <div className="text-[11px] text-slate-500 tabular-nums whitespace-nowrap">in the fund {formatZl(r.balance)}</div>
                   )}
                 </div>
               </li>
@@ -225,7 +225,7 @@ export function KasaHistory({ kasa, names }: { kasa: WithAddress<Kasa>; names: M
       )}
       {!complete && (
         <p className="text-[11px] text-slate-500 mt-2">
-          Pokazuję ostatnie {HISTORY_LIMIT} transakcji; starsze są w eksploratorze przy koncie kasy.
+          Showing the last {HISTORY_LIMIT} transactions; older ones are in the explorer under the fund's account.
         </p>
       )}
     </Card>

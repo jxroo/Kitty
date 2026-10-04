@@ -9,16 +9,16 @@ export function ActivityFeed() {
   if (!busy && activity.length === 0) return null;
   return (
     <Card>
-      <h3 className="kicker font-semibold text-[11px] mb-2">Twoje ostatnie operacje</h3>
+      <h3 className="kicker font-semibold text-[11px] mb-2">Your recent activity</h3>
       {busy && (
         <div className="text-xs text-slate-600 mb-2 animate-pulse" role="status">
-          {busy}: czekam na podpis w portfelu i potwierdzenie sieci…
+          {busy}: waiting for your wallet signature and network confirmation…
         </div>
       )}
       <ul className="space-y-1.5">
         {activity.map((a) => (
           <li key={a.id} className="text-xs flex flex-wrap items-center gap-2">
-            <span className="text-slate-400 font-mono text-[10px]">{new Date(a.at).toLocaleTimeString("pl-PL")}</span>
+            <span className="text-slate-400 font-mono text-[10px]">{new Date(a.at).toLocaleTimeString("en-GB")}</span>
             {a.signature ? (
               <>
                 <span className="text-emerald-700">{a.label}</span>

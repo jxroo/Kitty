@@ -59,16 +59,16 @@ export function LoanCard({ loan, kasa, names, me }: Props) {
   const isBorrower = me?.data.wallet === l.borrower;
 
   return (
-    <article className="bg-panel/80 border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3" aria-label={`Pożyczka ${name(l.borrower)}`}>
+    <article className="bg-panel/80 border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3" aria-label={`Loan ${name(l.borrower)}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="font-bold text-slate-900">
-            {name(l.borrower)} pożycza {formatZl(l.amount)}
-            {isBorrower && <span className="text-emerald-700 text-xs font-semibold"> (Twoja)</span>}
+            {name(l.borrower)} borrows {formatZl(l.amount)}
+            {isBorrower && <span className="text-emerald-700 text-xs font-semibold"> (yours)</span>}
           </div>
           <div className="text-[11px] text-slate-500">
-            {l.installments} {plural(l.installments, "rata", "raty", "rat")} po ok. {formatZl(l.amount / BigInt(l.installments))} · co{" "}
-            {formatDuration(kasa.data.periodSecs)} · <AddressLink address={loan.address} label="konto pożyczki" />
+            {l.installments} {plural(l.installments, "installment", "installments")} of about {formatZl(l.amount / BigInt(l.installments))} · every{" "}
+            {formatDuration(kasa.data.periodSecs)} · <AddressLink address={loan.address} label="loan account" />
           </div>
         </div>
         <Badge tone={STATUS_TONE[l.status]}>{LOAN_STATUS_LABEL[l.status]}</Badge>
@@ -93,10 +93,10 @@ function CollateralBar({ loan, name }: { loan: Loan; name: (w: string) => string
   return (
     <div>
       <div className="text-[11px] font-semibold text-slate-600 mb-1">
-        Zablokowane oszczędności na {loan.status === LoanStatus.Pending ? "tę pożyczkę" : "resztę do spłaty"}: {formatZl(covered)} z{" "}
+        Locked savings for {loan.status === LoanStatus.Pending ? "this loan" : "the rest to repay"}: {formatZl(covered)} of{" "}
         {formatZl(total)}
       </div>
-      <div className="h-3 w-full rounded-full bg-slate-100 ring-1 ring-slate-200 overflow-hidden flex shadow-[0_0_14px_-4px_rgba(16,185,129,0.6)]" role="img" aria-label={`Zablokowane ${formatZl(covered)} z ${formatZl(total)}`}>
+      <div className="h-3 w-full rounded-full bg-slate-100 ring-1 ring-slate-200 overflow-hidden flex shadow-[0_0_14px_-4px_rgba(16,185,129,0.6)]" role="img" aria-label={`Locked ${formatZl(covered)} of ${formatZl(total)}`}>
         <div className="bg-amber-400 h-full" style={{ width: `${pct(loan.ownCollateral)}%` }} />
         {guarantors.map((g, i) => (
           <div key={g.wallet} className={`${GUARANTOR_COLORS[i]} h-full`} style={{ width: `${pct(g.amount)}%` }} />
@@ -104,15 +104,15 @@ function CollateralBar({ loan, name }: { loan: Loan; name: (w: string) => string
       </div>
       <ul className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-[11px] text-slate-700">
         <li className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-amber-400" aria-hidden /> {name(loan.borrower)} (swoje): {formatZl(loan.ownCollateral)}
+          <span className="w-2.5 h-2.5 rounded-sm bg-amber-400" aria-hidden /> {name(loan.borrower)} (own): {formatZl(loan.ownCollateral)}
         </li>
         {guarantors.map((g, i) => (
           <li key={g.wallet} className="flex items-center gap-1">
-            <span className={`w-2.5 h-2.5 rounded-sm ${GUARANTOR_COLORS[i]}`} aria-hidden /> {name(g.wallet)} poręcza: {formatZl(g.amount)}
-            {g.seized > 0n && <span className="text-rose-600"> (stracone: {formatZl(g.seized)})</span>}
+            <span className={`w-2.5 h-2.5 rounded-sm ${GUARANTOR_COLORS[i]}`} aria-hidden /> {name(g.wallet)} guarantees: {formatZl(g.amount)}
+            {g.seized > 0n && <span className="text-rose-600"> (lost: {formatZl(g.seized)})</span>}
           </li>
         ))}
-        {missing > 0n && <li className="text-slate-500">brakuje: {formatZl(missing)}</li>}
+        {missing > 0n && <li className="text-slate-500">missing: {formatZl(missing)}</li>}
       </ul>
     </div>
   );
@@ -138,9 +138,9 @@ function PendingActions({ loan, kasa, me, nameOf }: Omit<Props, "names"> & { nam
     } catch (err) {
       return setError(describeError(err));
     }
-    if (amount <= 0n) return setError("Podaj kwotę poręczenia.");
+    if (amount <= 0n) return setError("Enter the guarantee amount.");
     const ix = await guaranteeIx(client.identity, kasa.address, loan.address, amount);
-    await run(`Poręczenie ${formatZl(amount)}`, () => client.sendTransaction([ix]));
+    await run(`Guarantee ${formatZl(amount)}`, () => client.sendTransaction([ix]));
   }
 
   return (
@@ -148,20 +148,20 @@ function PendingActions({ loan, kasa, me, nameOf }: Omit<Props, "names"> & { nam
       {!isBorrower && <CreditHistoryLine wallet={l.borrower} name={nameOf(l.borrower)} />}
       {missing > 0n ? (
         <p className="text-xs text-slate-700">
-          Brakuje jeszcze <strong>{formatZl(missing)}</strong> poręczeń. <strong>Poręczyć</strong> znaczy zablokować część swoich
-          oszczędności, dopóki pożyczka nie zostanie spłacona. Jeśli pożyczkobiorca nie zapłaci, a jego oszczędności się skończą,
-          brakujące raty zostaną pokryte z Twoich – najwyżej do kwoty poręczenia.
+          <strong>{formatZl(missing)}</strong> in guarantees is still missing. To <strong>guarantee</strong> means locking part of your
+          savings until the loan is repaid. If the borrower doesn't pay and their own savings run out, the missing
+          installments are covered from yours – at most up to the amount you guaranteed.
         </p>
       ) : (
         <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1">
-          <Check className="w-3.5 h-3.5" aria-hidden /> Pożyczka jest w pełni pokryta. Pożyczkobiorca może ją wypłacić – nikt nie musi się zgadzać.
+          <Check className="w-3.5 h-3.5" aria-hidden /> The loan is fully covered. The borrower can take it out – nobody has to agree.
         </p>
       )}
       <div className="flex flex-wrap gap-2">
         {me && !isBorrower && missing > 0n && (
           <div className="flex gap-2">
-            <Input aria-label="Kwota poręczenia w zł" inputMode="decimal" value={pledge} onChange={(e) => setPledge(e.target.value)} className="w-28" />
-            <Button onClick={guarantee} disabled={!!busy}>Poręczam</Button>
+            <Input aria-label="Guarantee amount in PLN" inputMode="decimal" value={pledge} onChange={(e) => setPledge(e.target.value)} className="w-28" />
+            <Button onClick={guarantee} disabled={!!busy}>Guarantee</Button>
           </div>
         )}
         {myPledge && (
@@ -170,10 +170,10 @@ function PendingActions({ loan, kasa, me, nameOf }: Omit<Props, "names"> & { nam
             disabled={!!busy}
             onClick={async () => {
               const ix = await withdrawGuaranteeIx(client.identity, kasa.address, loan.address);
-              await run("Wycofanie poręczenia", () => client.sendTransaction([ix]));
+              await run("Withdrawing the guarantee", () => client.sendTransaction([ix]));
             }}
           >
-            Wycofaj moje poręczenie
+            Withdraw my guarantee
           </Button>
         )}
         {isBorrower && (
@@ -184,22 +184,22 @@ function PendingActions({ loan, kasa, me, nameOf }: Omit<Props, "names"> & { nam
               onClick={async () => {
                 const ixs = await disburseIxs(client.identity, loan.address, l, kasa.data, { mandate });
                 await run(
-                  `Wypłata pożyczki ${formatZl(l.amount)}${mandate ? " + automatyczna spłata rat" : ""}`,
+                  `Loan payout ${formatZl(l.amount)}${mandate ? " + automatic repayment" : ""}`,
                   () => client.sendTransaction(ixs)
                 );
               }}
             >
-              Wypłać pożyczkę na mój portfel
+              Pay the loan out to my wallet
             </Button>
             <Button
               variant="danger"
               disabled={!!busy}
               onClick={async () => {
                 const ix = await cancelLoanIx(client.identity, loan.address, l);
-                await run("Rezygnacja z pożyczki", () => client.sendTransaction([ix]));
+                await run("Cancelling the loan", () => client.sendTransaction([ix]));
               }}
             >
-              Zrezygnuj
+              Cancel
             </Button>
           </>
         )}
@@ -208,12 +208,12 @@ function PendingActions({ loan, kasa, me, nameOf }: Omit<Props, "names"> & { nam
         <label className="flex items-start gap-2 text-[11px] text-slate-700 cursor-pointer">
           <input type="checkbox" className="mt-0.5" checked={mandate} onChange={(e) => setMandate(e.target.checked)} />
           <span>
-            <strong>Spłacaj raty automatycznie:</strong> w dniu terminu rata sama zejdzie z mojego portfela, więc nie muszę pamiętać o
-            terminach. Program weźmie tylko ratę, nic więcej. Mogę to wyłączyć w każdej chwili.
+            <strong>Repay installments automatically:</strong> on the due date the installment leaves my wallet by itself, so I don't have to
+            remember due dates. The program takes only the installment, nothing more. I can turn this off at any time.
           </span>
         </label>
       )}
-      {!me && wallet && <p className="text-[11px] text-slate-500">Dołącz do kasy, żeby poręczyć.</p>}
+      {!me && wallet && <p className="text-[11px] text-slate-500">Join the fund to guarantee.</p>}
       <ErrorText>{error}</ErrorText>
     </div>
   );
@@ -239,14 +239,14 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
 
   async function pull() {
     const ix = await pullInstallmentIx(loan.address, l, kasa.data);
-    await run(`Rata ${formatZl(owed < available ? owed : available)} pobrana automatycznie`, () => client.sendTransaction([ix]));
+    await run(`Installment ${formatZl(owed < available ? owed : available)} collected automatically`, () => client.sendTransaction([ix]));
   }
 
   async function toggleMandate() {
     const ix = hasMandate
       ? await revokeMandateIx(client.identity, kasa.data.mint)
       : await approveMandateIx(client.identity, kasa.address, kasa.data.mint, left);
-    await run(hasMandate ? "Wyłączenie automatycznej spłaty" : `Włączenie automatycznej spłaty (do ${formatZl(left)})`, () => client.sendTransaction([ix]));
+    await run(hasMandate ? "Turning off automatic repayment" : `Turning on automatic repayment (up to ${formatZl(left)})`, () => client.sendTransaction([ix]));
   }
 
   async function repay() {
@@ -257,35 +257,35 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
     } catch (err) {
       return setError(describeError(err));
     }
-    if (value <= 0n) return setError("Podaj kwotę.");
+    if (value <= 0n) return setError("Enter an amount.");
     const ix = await repayIx(client.identity, loan.address, l, kasa.data, value);
-    await run(`Spłata ${formatZl(value)}`, () => client.sendTransaction([ix]));
+    await run(`Repayment ${formatZl(value)}`, () => client.sendTransaction([ix]));
     setAmount("");
   }
 
   async function collect() {
     const ix = await collectOverdueIx(loan.address, l);
-    await run(`Zaległa rata ${formatZl(overdue)} pokryta z oszczędności`, () => client.sendTransaction([ix]));
+    await run(`Overdue installment ${formatZl(overdue)} covered from savings`, () => client.sendTransaction([ix]));
   }
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-4 text-xs text-slate-700">
-        <span>Spłacone: <strong>{formatZl(l.repaid)}</strong></span>
+        <span>Repaid: <strong>{formatZl(l.repaid)}</strong></span>
         {l.seized > 0n && (
-          <span className="text-rose-700">Pokryte z zablokowanych oszczędności: <strong>{formatZl(l.seized)}</strong></span>
+          <span className="text-rose-700">Covered from locked savings: <strong>{formatZl(l.seized)}</strong></span>
         )}
-        <span>Zostało: <strong>{formatZl(left)}</strong></span>
+        <span>Left: <strong>{formatZl(left)}</strong></span>
         {l.autopaid > 0n && (
           <span className="text-emerald-700">
-            Spłacone automatycznie: <strong>{formatZl(l.autopaid)}</strong>
+            Repaid automatically: <strong>{formatZl(l.autopaid)}</strong>
           </span>
         )}
       </div>
 
       <MandateBanner name={name(l.borrower)} token={mandate?.token ?? null} active={hasMandate} isBorrower={isBorrower} />
 
-      <ol className="grid grid-cols-2 sm:grid-cols-4 gap-2" aria-label="Harmonogram rat">
+      <ol className="grid grid-cols-2 sm:grid-cols-4 gap-2" aria-label="Installment schedule">
         {rows.map((r) => {
           const collectible = now >= r.collectibleAt;
           const late = (r.state === "open" || r.state === "partly") && now >= r.dueAt;
@@ -299,18 +299,18 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
                   : "border-slate-200 bg-slate-50 text-slate-700";
           return (
             <li key={r.k} className={`border rounded-lg p-2 text-[11px] ${style}`}>
-              <div className="font-semibold">Rata {r.k}: {formatZl(r.amount)}</div>
+              <div className="font-semibold">Installment {r.k}: {formatZl(r.amount)}</div>
               <div>
-                {r.state === "paid" && "spłacona"}
-                {r.state === "seized" && "pokryta z oszczędności"}
+                {r.state === "paid" && "repaid"}
+                {r.state === "seized" && "covered from savings"}
                 {(r.state === "open" || r.state === "partly") &&
                   (now < r.dueAt
-                    ? `za ${formatDuration(r.dueAt - now)}${hasMandate ? " · zapłaci się sama" : ""}`
+                    ? `in ${formatDuration(r.dueAt - now)}${hasMandate ? " · pays itself" : ""}`
                     : available > 0n
-                      ? "termin minął – pobieram z portfela"
+                      ? "due – collecting from the wallet"
                       : collectible
-                        ? "niezapłacona – do pokrycia"
-                        : `czas na spóźnienie: ${formatDuration(r.collectibleAt - now)}`)}
+                        ? "unpaid – ready to be covered"
+                        : `grace period: ${formatDuration(r.collectibleAt - now)}`)}
               </div>
             </li>
           );
@@ -322,13 +322,13 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
           <p className="text-xs text-emerald-900 flex items-start gap-1.5">
             <Bot className="w-4 h-4 shrink-0" aria-hidden />
             <span>
-              Termin raty minął, a automatyczna spłata jest włączona. Automat zaraz pobierze{" "}
+              The installment is due and automatic repayment is on. The bot will shortly collect{" "}
               <strong>{formatZl(owed < available ? owed : available)}</strong>{" "}
-              {isBorrower ? "z Twojego portfela" : `z portfela pożyczkobiorcy (${name(l.borrower)})`}. Nie trzeba czekać na automat:
+              {isBorrower ? "from your wallet" : `from the borrower's wallet (${name(l.borrower)})`}. No need to wait for the bot:
             </span>
           </p>
           <Button variant="primary" onClick={pull} disabled={!!busy || !wallet}>
-            <Repeat className="w-3.5 h-3.5" aria-hidden /> Pobierz ratę teraz
+            <Repeat className="w-3.5 h-3.5" aria-hidden /> Collect installment now
           </Button>
         </div>
       )}
@@ -337,20 +337,20 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
           <p className="text-xs text-amber-900 flex items-start gap-1.5">
             <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden />
             <span>
-              Niezapłacone: <strong>{formatZl(overdue)}</strong>. Teraz <strong>każdy</strong> może pokryć tę kwotę z zablokowanych
-              oszczędności: najpierw pożyczkobiorcy ({name(l.borrower)}), potem osób, które poręczyły. Bez windykacji i bez niczyjej
-              zgody. Zwykle robi to automat.
+              Unpaid: <strong>{formatZl(overdue)}</strong>. Now <strong>anyone</strong> can cover this amount from locked
+              savings: first the borrower's ({name(l.borrower)}), then the guarantors'. No debt collectors and nobody's
+              permission needed. Usually the bot does it.
             </span>
           </p>
           <Button variant="warning" onClick={collect} disabled={!!busy || !wallet}>
-            <Gavel className="w-3.5 h-3.5" aria-hidden /> Pokryj zaległą ratę
+            <Gavel className="w-3.5 h-3.5" aria-hidden /> Cover overdue installment
           </Button>
         </div>
       )}
       {overdue === 0n && next && now < next.collectibleAt && (
         <p className="text-[11px] text-slate-500 flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5" aria-hidden /> Jeśli rata {next.k} nie wpłynie, za {formatDuration(next.collectibleAt - now)} zostanie
-          pokryta z zablokowanych oszczędności.
+          <Clock className="w-3.5 h-3.5" aria-hidden /> If installment {next.k} isn't paid, in {formatDuration(next.collectibleAt - now)} it will
+          be covered from locked savings.
         </p>
       )}
 
@@ -358,7 +358,7 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
         <div className="flex flex-wrap items-end gap-2">
           <div>
             <label htmlFor={`repay-${loan.address}`} className="block text-[11px] font-semibold text-slate-700 mb-1">
-              {isBorrower ? "Spłać (zł)" : "Spłać za pożyczkobiorcę (zł)"}
+              {isBorrower ? "Repay (PLN)" : "Repay for the borrower (PLN)"}
             </label>
             <Input
               id={`repay-${loan.address}`}
@@ -370,14 +370,14 @@ function ActiveSection({ loan, kasa, me, name }: Omit<Props, "names"> & { name: 
             />
           </div>
           <Button onClick={repay} disabled={!!busy || left === 0n} variant={isBorrower ? "primary" : "ghost"}>
-            {isBorrower ? "Spłać ratę" : "Spłać"}
+            {isBorrower ? "Repay installment" : "Repay"}
           </Button>
           {isBorrower && (
             <Button onClick={toggleMandate} disabled={!!busy} variant={hasMandate ? "danger" : "secondary"}>
-              {hasMandate ? "Wyłącz automatyczną spłatę" : "Włącz automatyczną spłatę"}
+              {hasMandate ? "Turn off automatic repayment" : "Turn on automatic repayment"}
             </Button>
           )}
-          {!me && <span className="text-[11px] text-slate-500">Spłacić może każdy, także osoba spoza kasy.</span>}
+          {!me && <span className="text-[11px] text-slate-500">Anyone can repay, even someone outside the fund.</span>}
         </div>
       )}
       <ErrorText>{error}</ErrorText>
@@ -422,38 +422,38 @@ function MandateBanner({
       <p className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5 flex items-start gap-1.5">
         <Repeat className="w-3.5 h-3.5 shrink-0 mt-px" aria-hidden />
         <span>
-          <strong>Automatyczna spłata włączona.</strong> W dniu terminu rata sama zejdzie{" "}
-          {isBorrower ? "z Twojego portfela" : `z portfela pożyczkobiorcy (${name})`} – bez banku i bez klikania. Program weźmie tylko
-          ratę, nic więcej (limit: {formatZl(token.delegatedAmount)}, w portfelu: {formatZl(token.amount)}).
+          <strong>Automatic repayment is on.</strong> On the due date the installment leaves{" "}
+          {isBorrower ? "your wallet" : `the borrower's wallet (${name})`} by itself – no bank, no clicking. The program takes only the
+          installment, nothing more (limit: {formatZl(token.delegatedAmount)}, in wallet: {formatZl(token.amount)}).
         </span>
       </p>
     );
   }
   return (
     <p className="text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
-      Automatyczna spłata wyłączona: {isBorrower ? "spłacasz" : `${name} spłaca`} ręcznie. Jeśli rata nie wpłynie, po krótkim czasie na
-      spóźnienie zostanie pokryta z zablokowanych oszczędności.
+      Automatic repayment is off: {isBorrower ? "you repay" : `${name} repays`} by hand. If an installment isn't paid, after a short grace
+      period it will be covered from locked savings.
     </p>
   );
 }
 
 function ClosedSummary({ loan, name }: { loan: Loan; name: (w: string) => string }) {
   if (loan.status === LoanStatus.Cancelled) {
-    return <p className="text-xs text-slate-600">Rezygnacja przed wypłatą. Wszystkie zablokowane oszczędności wróciły do właścicieli.</p>;
+    return <p className="text-xs text-slate-600">Cancelled before payout. All locked savings went back to their owners.</p>;
   }
   const guarantorSeized = loan.guarantors.slice(0, loan.guarantorCount).filter((g) => g.seized > 0n);
   return (
     <div className="text-xs text-slate-700 space-y-1">
       <p>
-        Spłacona w całości: <strong>{formatZl(loan.repaid)}</strong> wpłynęło od pożyczkobiorcy
+        Fully repaid: <strong>{formatZl(loan.repaid)}</strong> came from the borrower
         {loan.seized > 0n && (
           <>
-            , <strong className="text-rose-700">{formatZl(loan.seized)}</strong> pokryto z zablokowanych oszczędności (
+            , <strong className="text-rose-700">{formatZl(loan.seized)}</strong> was covered from locked savings (
             {name(loan.borrower)}: {formatZl(loan.ownSeized)}
             {guarantorSeized.map((g) => `, ${name(g.wallet)}: ${formatZl(g.seized)}`).join("")})
           </>
         )}
-        . Kasa nie straciła ani grosza.
+        . The fund didn't lose a single grosz.
       </p>
     </div>
   );

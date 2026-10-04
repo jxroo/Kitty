@@ -34,7 +34,7 @@ export function KasaView({ kasa, onBack }: { kasa: Address; onBack: () => void }
     return (
       <div className="space-y-3">
         <BackLink onBack={onBack} />
-        <EmptyState>{loading ? "Czytam kasę z łańcucha…" : "Nie znaleziono tej kasy na devnecie."}</EmptyState>
+        <EmptyState>{loading ? "Reading the fund from the chain…" : "This fund was not found on devnet."}</EmptyState>
       </div>
     );
   }
@@ -50,7 +50,7 @@ export function KasaView({ kasa, onBack }: { kasa: Address; onBack: () => void }
           <h1 className="rise text-3xl font-extrabold text-white tracking-[-0.03em]">{k.data.name}</h1>
           <div className="rule-glow mt-2 mb-2 w-64 max-w-full" aria-hidden />
           <p className="text-xs text-slate-500">
-            Kasa <AddressLink address={kasa} /> · założyciel: {names.get(k.data.founder) ?? "członek"} (zwykły członek, bez specjalnych praw)
+            Fund <AddressLink address={kasa} /> · founder: {names.get(k.data.founder) ?? "a member"} (an ordinary member with no special rights)
           </p>
         </div>
         <ShareButton kasa={kasa} />
@@ -63,15 +63,15 @@ export function KasaView({ kasa, onBack }: { kasa: Address; onBack: () => void }
           {me && me.data.openLoans === 0 && <RequestLoanForm kasa={k} me={me} />}
           <section aria-labelledby="loans-heading" className="space-y-3">
             <h2 id="loans-heading" className="kicker font-semibold text-[11px] flex items-center gap-1.5">
-              <HandCoins className="w-4 h-4" aria-hidden /> Pożyczki
+              <HandCoins className="w-4 h-4" aria-hidden /> Loans
             </h2>
-            {open.length === 0 && <EmptyState>Brak otwartych pożyczek w tej kasie.</EmptyState>}
+            {open.length === 0 && <EmptyState>No open loans in this fund.</EmptyState>}
             {open.map((l) => (
               <LoanCard key={l.address} loan={l} kasa={k} names={names} me={me} />
             ))}
             {closed.length > 0 && (
               <details className="group">
-                <summary className="text-xs font-semibold text-slate-600 cursor-pointer">Zakończone pożyczki ({closed.length})</summary>
+                <summary className="text-xs font-semibold text-slate-600 cursor-pointer">Closed loans ({closed.length})</summary>
                 <div className="space-y-3 mt-3">
                   {closed.map((l) => (
                     <LoanCard key={l.address} loan={l} kasa={k} names={names} me={me} />
@@ -95,7 +95,7 @@ export function KasaView({ kasa, onBack }: { kasa: Address; onBack: () => void }
 function BackLink({ onBack }: { onBack: () => void }) {
   return (
     <button onClick={onBack} className="text-xs text-slate-600 hover:text-slate-900 inline-flex items-center gap-1">
-      <ArrowLeft className="w-3.5 h-3.5" aria-hidden /> Wszystkie kasy
+      <ArrowLeft className="w-3.5 h-3.5" aria-hidden /> All funds
     </button>
   );
 }
@@ -111,7 +111,7 @@ function ShareButton({ kasa }: { kasa: Address }) {
         setTimeout(() => setCopied(false), 1500);
       }}
     >
-      <Copy className="w-3.5 h-3.5" aria-hidden /> {copied ? "Skopiowano link" : "Zaproś: skopiuj link"}
+      <Copy className="w-3.5 h-3.5" aria-hidden /> {copied ? "Link copied" : "Invite: copy link"}
     </Button>
   );
 }
@@ -121,25 +121,25 @@ function RulesCard({ kasa }: { kasa: WithAddress<Kasa> }) {
   return (
     <Card>
       <h2 className="kicker font-semibold text-[11px] mb-3 flex items-center gap-1.5">
-        <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden /> Zasady tej kasy
+        <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden /> This fund's rules
       </h2>
       <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
-        <dt className="text-slate-500">Ile można pożyczyć</dt>
-        <dd className="font-semibold text-slate-900">do {d.loanMultiplierBps / 10_000}× tego, co masz odłożone</dd>
-        <dt className="text-slate-500">Warunek wypłaty</dt>
-        <dd className="font-semibold text-slate-900">Twoje oszczędności + poręczenia innych pokrywają całą kwotę</dd>
-        <dt className="text-slate-500">Raty</dt>
-        <dd className="font-semibold text-slate-900">do {d.maxInstallments}, co {formatDuration(d.periodSecs)}</dd>
-        <dt className="text-slate-500">Czas na spóźnienie</dt>
+        <dt className="text-slate-500">How much you can borrow</dt>
+        <dd className="font-semibold text-slate-900">up to {d.loanMultiplierBps / 10_000}× what you have saved</dd>
+        <dt className="text-slate-500">Payout condition</dt>
+        <dd className="font-semibold text-slate-900">your savings + others' guarantees cover the full amount</dd>
+        <dt className="text-slate-500">Installments</dt>
+        <dd className="font-semibold text-slate-900">up to {d.maxInstallments}, every {formatDuration(d.periodSecs)}</dd>
+        <dt className="text-slate-500">Grace period</dt>
         <dd className="font-semibold text-slate-900">{formatDuration(d.graceSecs)}</dd>
-        <dt className="text-slate-500">Odsetki i prowizje</dt>
-        <dd className="font-semibold text-emerald-700">0 zł</dd>
-        <dt className="text-slate-500">Kto zatwierdza pożyczki</dt>
-        <dd className="font-semibold text-slate-900">nikt</dd>
+        <dt className="text-slate-500">Interest and fees</dt>
+        <dd className="font-semibold text-emerald-700">0 PLN</dd>
+        <dt className="text-slate-500">Who approves loans</dt>
+        <dd className="font-semibold text-slate-900">nobody</dd>
       </dl>
       <p className="text-[11px] text-slate-500 mt-3">
-        Zasady ustalono przy zakładaniu kasy i nikt ich nie zmieni: nie ma zarządu ani administratora. (Uczciwie: w wersji
-        testowej autorzy mogą jeszcze podmienić kod programu – szczegóły w zakładce „Gdzie znika pośrednik?”.)
+        The rules were set when the fund was created and nobody can change them: there is no board and no admin. (To be fair: in
+        this test version the authors can still replace the program code – details in the “Where did the middleman go?” tab.)
       </p>
     </Card>
   );
@@ -155,19 +155,19 @@ function VaultCard({ kasa }: { kasa: WithAddress<Kasa> }) {
   return (
     <Card className="bg-emerald-50 border-emerald-200">
       <h2 className="kicker font-semibold text-[11px] mb-2 flex items-center gap-1.5">
-        <Vault className="w-4 h-4" aria-hidden /> Pieniądze kasy
+        <Vault className="w-4 h-4" aria-hidden /> The fund's money
       </h2>
       <div className="text-2xl font-bold text-emerald-900">{vaultBalance === null ? "…" : formatZl(vaultBalance)}</div>
       <p className="text-[11px] text-emerald-900 mt-1">
-        = odłożone {formatZl(kasa.data.totalSavings)} − pożyczone {formatZl(kasa.data.totalOutstanding)}{" "}
-        {vaultBalance !== null && (vaultBalance === expected ? "✓" : "(odświeżam…)")}
+        = saved {formatZl(kasa.data.totalSavings)} − lent {formatZl(kasa.data.totalOutstanding)}{" "}
+        {vaultBalance !== null && (vaultBalance === expected ? "✓" : "(refreshing…)")}
       </p>
       <p className="text-[11px] text-emerald-800 mt-2">
-        Leżą na koncie programu, nie u skarbnika ani w banku. Każda pożyczka jest w całości pokryta zablokowanymi
-        oszczędnościami, więc wolne pieniądze każdego członka zawsze tu są – wyjmujesz je, kiedy chcesz, bez pytania kogokolwiek.
+        It sits in a program account, not with a treasurer or a bank. Every loan is fully covered by locked savings, so every
+        member's free money is always here – you take it out whenever you want, without asking anyone.
       </p>
       <div className="mt-2">
-        <AddressLink address={kasa.data.vault} label="sprawdź konto kasy w eksploratorze" />
+        <AddressLink address={kasa.data.vault} label="check the fund's account in the explorer" />
       </div>
     </Card>
   );
@@ -179,15 +179,15 @@ function MembersCard({ members }: { members: WithAddress<Member>[] }) {
   return (
     <Card>
       <h2 className="kicker font-semibold text-[11px] mb-3 flex items-center gap-1.5">
-        <Users className="w-4 h-4" aria-hidden /> Członkowie ({members.length})
+        <Users className="w-4 h-4" aria-hidden /> Members ({members.length})
       </h2>
-      {members.length === 0 && <p className="text-xs text-slate-500">Nikt jeszcze nie dołączył.</p>}
+      {members.length === 0 && <p className="text-xs text-slate-500">Nobody has joined yet.</p>}
       <table className="w-full text-[11px]">
         <thead>
           <tr className="text-slate-500 text-left">
-            <th className="font-medium pb-1">Imię</th>
-            <th className="font-medium pb-1 text-right">Oszczędności</th>
-            <th className="font-medium pb-1 text-right">Zablokowane</th>
+            <th className="font-medium pb-1">Name</th>
+            <th className="font-medium pb-1 text-right">Savings</th>
+            <th className="font-medium pb-1 text-right">Locked</th>
           </tr>
         </thead>
         <tbody>
@@ -196,19 +196,19 @@ function MembersCard({ members }: { members: WithAddress<Member>[] }) {
             <tr className="border-t border-slate-100">
               <td className="py-1.5">
                 <span className="font-semibold text-slate-900">{data.displayName}</span>
-                {data.wallet === wallet && <span className="text-emerald-700"> (Ty)</span>}
+                {data.wallet === wallet && <span className="text-emerald-700"> (you)</span>}
                 {data.contribution > 0n && (
-                  <div className="text-emerald-700">składka stała: {formatZl(data.contribution)}</div>
+                  <div className="text-emerald-700">standing contribution: {formatZl(data.contribution)}</div>
                 )}
                 {data.totalSeized > 0n && (
-                  <div className="text-rose-600">stracone na niezapłacone raty: {formatZl(data.totalSeized)}</div>
+                  <div className="text-rose-600">lost to missed installments: {formatZl(data.totalSeized)}</div>
                 )}
                 <button
                   className="block text-slate-500 hover:text-slate-800 underline decoration-dotted"
                   aria-expanded={open === address}
                   onClick={() => setOpen(open === address ? null : address)}
                 >
-                  historia
+                  history
                 </button>
               </td>
               <td className="py-1.5 text-right font-semibold text-slate-900">{formatZl(data.savings)}</td>
@@ -239,7 +239,7 @@ function MyPanel({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddress<Member
   if (!wallet) {
     return (
       <Card>
-        <p className="text-xs text-slate-600">Połącz portfel (prawy górny róg), żeby dołączyć do kasy.</p>
+        <p className="text-xs text-slate-600">Connect your wallet (top right corner) to join the fund.</p>
       </Card>
     );
   }
@@ -247,23 +247,23 @@ function MyPanel({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddress<Member
   if (!me) {
     return (
       <Card>
-        <h2 className="font-bold text-slate-900 text-sm mb-1">Dołącz do kasy</h2>
+        <h2 className="font-bold text-slate-900 text-sm mb-1">Join the fund</h2>
         <p className="text-[11px] text-slate-500 mb-3">
-          Nikt nie musi Cię przyjmować. Ryzykujesz tylko własne pieniądze, a pożyczkę dostaniesz tylko wtedy, gdy ktoś sam zechce
-          za Ciebie poręczyć.
+          Nobody has to accept you. You only risk your own money, and you only get a loan if someone chooses to guarantee
+          it for you.
         </p>
         <form
           className="flex gap-2"
           onSubmit={async (e) => {
             e.preventDefault();
             setError(null);
-            if (utf8Length(displayName) < 1 || utf8Length(displayName) > 24) return setError("Imię: 1–24 bajty.");
+            if (utf8Length(displayName) < 1 || utf8Length(displayName) > 24) return setError("Name: 1–24 bytes.");
             const ix = await joinIx(client.identity, kasa.address, displayName);
-            await run(`Dołączenie do „${kasa.data.name}”`, () => client.sendTransaction([ix]));
+            await run(`Joining “${kasa.data.name}”`, () => client.sendTransaction([ix]));
           }}
         >
-          <Input aria-label="Twoje imię w kasie" placeholder="Twoje imię, np. Bartek" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={24} />
-          <Button type="submit" disabled={!!busy}>Dołącz</Button>
+          <Input aria-label="Your name in the fund" placeholder="Your name, e.g. Bart" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={24} />
+          <Button type="submit" disabled={!!busy}>Join</Button>
         </form>
         <ErrorText>{error}</ErrorText>
       </Card>
@@ -280,10 +280,10 @@ function MyPanel({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddress<Member
     } catch (err) {
       return setError(describeError(err));
     }
-    if (amount <= 0n) return setError("Kwota musi być większa od zera.");
-    if (tokenBalance !== null && amount > tokenBalance) return setError("Masz za mało tPLN w portfelu. Użyj „Dobierz testowe zł”.");
+    if (amount <= 0n) return setError("The amount must be greater than zero.");
+    if (tokenBalance !== null && amount > tokenBalance) return setError("You don't have enough tPLN in your wallet. Use “Get test PLN”.");
     const ix = await depositIx(client.identity, kasa.address, kasa.data, amount);
-    await run(`Wpłata ${formatZl(amount)}`, () => client.sendTransaction([ix]));
+    await run(`Deposit ${formatZl(amount)}`, () => client.sendTransaction([ix]));
   }
 
   async function withdraw() {
@@ -294,40 +294,40 @@ function MyPanel({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddress<Member
     } catch (err) {
       return setError(describeError(err));
     }
-    if (amount <= 0n) return setError("Kwota musi być większa od zera.");
+    if (amount <= 0n) return setError("The amount must be greater than zero.");
     const ixs = await withdrawIxs(client.identity, kasa.address, kasa.data, amount);
-    await run(`Wypłata ${formatZl(amount)}`, () => client.sendTransaction(ixs));
+    await run(`Withdrawal ${formatZl(amount)}`, () => client.sendTransaction(ixs));
   }
 
   return (
     <Card>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-bold text-slate-900 text-sm">Moje oszczędności · {me.data.displayName}</h2>
-        <span className="text-[11px] text-slate-500">w portfelu: {tokenBalance !== null ? formatZl(tokenBalance) : "0 zł"}</span>
+        <h2 className="font-bold text-slate-900 text-sm">My savings · {me.data.displayName}</h2>
+        <span className="text-[11px] text-slate-500">in wallet: {tokenBalance !== null ? formatZl(tokenBalance) : "0 PLN"}</span>
       </div>
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <Stat label="Odłożone w kasie" value={formatZl(me.data.savings)} />
+        <Stat label="Saved in the fund" value={formatZl(me.data.savings)} />
         <Stat
-          label="Zablokowane"
+          label="Locked"
           value={<span className="inline-flex items-center gap-1">{me.data.locked > 0n && <Lock className="w-3.5 h-3.5" aria-hidden />}{formatZl(me.data.locked)}</span>}
-          hint="chronią pożyczki, do czasu spłaty"
+          hint="securing loans until they are repaid"
           tone={me.data.locked > 0n ? "amber" : "slate"}
         />
-        <Stat label="Wolne (możesz wyjąć)" value={formatZl(free)} tone="emerald" />
+        <Stat label="Free (you can withdraw)" value={formatZl(free)} tone="emerald" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="dep">Wpłać do kasy (zł)</Label>
+          <Label htmlFor="dep">Deposit into the fund (PLN)</Label>
           <div className="flex gap-2">
             <Input id="dep" inputMode="decimal" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} />
-            <Button onClick={deposit} disabled={!!busy}>Wpłać</Button>
+            <Button onClick={deposit} disabled={!!busy}>Deposit</Button>
           </div>
         </div>
         <div>
-          <Label htmlFor="wd">Wyjmij wolne pieniądze (zł)</Label>
+          <Label htmlFor="wd">Withdraw free money (PLN)</Label>
           <div className="flex gap-2">
             <Input id="wd" inputMode="decimal" placeholder={formatZl(free, false)} value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
-            <Button variant="ghost" onClick={withdraw} disabled={!!busy || free === 0n}>Wypłać</Button>
+            <Button variant="ghost" onClick={withdraw} disabled={!!busy || free === 0n}>Withdraw</Button>
           </div>
         </div>
       </div>
@@ -370,7 +370,7 @@ function StandingOrderCard({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddr
     const limit = value * 12n + owedOnLoan;
     const ixs: Instruction[] = [await setContributionIx(client.identity, kasa.address, value)];
     if (value > 0n) ixs.push(await approveMandateIx(client.identity, kasa.address, kasa.data.mint, limit));
-    await run(value > 0n ? `Składka stała ${formatZl(value)} co ${formatDuration(kasa.data.periodSecs)}` : "Wyłączenie składki", () =>
+    await run(value > 0n ? `Standing contribution ${formatZl(value)} every ${formatDuration(kasa.data.periodSecs)}` : "Turning off the contribution", () =>
       client.sendTransaction(ixs)
     );
   }
@@ -378,47 +378,47 @@ function StandingOrderCard({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddr
   return (
     <Card>
       <h2 className="font-bold text-slate-900 text-sm mb-1 flex items-center gap-1.5">
-        <Repeat className="w-4 h-4 text-emerald-600" aria-hidden /> Płatności automatyczne
+        <Repeat className="w-4 h-4 text-emerald-600" aria-hidden /> Automatic payments
       </h2>
       <p className="text-[11px] text-slate-600 mb-1">
-        Jedna zgoda i nie musisz pamiętać o terminach: co okres program sam przeleje Twoją stałą składkę z portfela do kasy, a w
-        dniu raty – ratę Twojej pożyczki. Weźmie tylko tyle, ile trzeba. Zgodę wyłączasz jednym kliknięciem.
+        Approve once and stop worrying about due dates: every period the program moves your standing contribution from your wallet
+        into the fund, and on the due date – your loan installment. It takes only what is due. You can turn it off with one click.
       </p>
       <details className="text-[11px] text-slate-500 mb-3">
-        <summary className="cursor-pointer">Jak to działa technicznie?</summary>
+        <summary className="cursor-pointer">How does it work technically?</summary>
         <p className="mt-1">
-          To standardowa zgoda z limitem kwoty (SPL <code>approve</code>) dla Twojego konta w tej kasie. Program może z niej pobrać tylko
-          wymagalną ratę albo składkę, tylko z Twojego portfela. Transakcje wysyła automat, który nie ma żadnych uprawnień – płaci
-          tylko opłatę sieci. Gdy zgodę wyłączysz, raty nadal są chronione Twoimi zablokowanymi oszczędnościami.
+          It is a standard capped allowance (SPL <code>approve</code>) for your account in this fund. The program can use it to take only
+          an installment or contribution that is due, and only from your wallet. Transactions are sent by a bot that has no special
+          permissions – it only pays the network fee. If you turn the allowance off, installments are still secured by your locked savings.
         </p>
       </details>
       <div className="flex flex-wrap gap-2 mb-3 text-[11px]">
         {mine ? (
           <span className="px-2 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800">
-            Włączone · limit {formatZl(walletToken!.delegatedAmount)}
+            On · limit {formatZl(walletToken!.delegatedAmount)}
           </span>
         ) : (
-          <span className="px-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-600">Wyłączone w tej kasie</span>
+          <span className="px-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-600">Off in this fund</span>
         )}
         {me.data.contribution > 0n && (
           <span className="px-2 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800">
-            Stała składka {formatZl(me.data.contribution)} co {formatDuration(kasa.data.periodSecs)} ·{" "}
-            {next > now ? `następna za ${formatDuration(next - now)}` : mine ? "teraz – automat pobiera" : "czeka na włączenie płatności"}
+            Standing contribution {formatZl(me.data.contribution)} every {formatDuration(kasa.data.periodSecs)} ·{" "}
+            {next > now ? `next in ${formatDuration(next - now)}` : mine ? "now – the bot is collecting it" : "waiting for automatic payments to be turned on"}
           </span>
         )}
       </div>
       {elsewhere && (
         <p className="text-[11px] text-amber-800 mb-2">
-          Masz włączone płatności automatyczne w innej kasie. Można je mieć tylko w jednej kasie naraz – nowa zgoda zastąpi tamtą.
+          You have automatic payments turned on in another fund. They can only be on in one fund at a time – a new approval will replace that one.
         </p>
       )}
       <div className="flex flex-wrap items-end gap-2">
         <div>
-          <Label htmlFor="contrib">Stała składka co okres (zł)</Label>
+          <Label htmlFor="contrib">Standing contribution per period (PLN)</Label>
           <Input id="contrib" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-28" />
         </div>
         <Button onClick={save} disabled={!!busy}>
-          {me.data.contribution > 0n ? "Zmień składkę" : "Włącz stałą składkę"}
+          {me.data.contribution > 0n ? "Change contribution" : "Turn on standing contribution"}
         </Button>
         {me.data.contribution > 0n && (
           <Button
@@ -426,10 +426,10 @@ function StandingOrderCard({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddr
             disabled={!!busy}
             onClick={async () => {
               const ix = await setContributionIx(client.identity, kasa.address, 0n);
-              await run("Wyłączenie składki", () => client.sendTransaction([ix]));
+              await run("Turning off the contribution", () => client.sendTransaction([ix]));
             }}
           >
-            Wyłącz składkę
+            Turn off contribution
           </Button>
         )}
         {mine && (
@@ -438,10 +438,10 @@ function StandingOrderCard({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddr
             disabled={!!busy}
             onClick={async () => {
               const ix = await revokeMandateIx(client.identity, kasa.data.mint);
-              await run("Wyłączenie płatności automatycznych", () => client.sendTransaction([ix]));
+              await run("Turning off automatic payments", () => client.sendTransaction([ix]));
             }}
           >
-            Wyłącz płatności automatyczne
+            Turn off automatic payments
           </Button>
         )}
       </div>
@@ -470,48 +470,48 @@ function RequestLoanForm({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddres
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (parsed === null || parsed <= 0n) return setError("Podaj kwotę pożyczki.");
-    if (parsed > limit) return setError(`Limit w tej kasie to ${formatZl(limit)} (${kasa.data.loanMultiplierBps / 10_000}× Twoich oszczędności).`);
+    if (parsed === null || parsed <= 0n) return setError("Enter the loan amount.");
+    if (parsed > limit) return setError(`The limit in this fund is ${formatZl(limit)} (${kasa.data.loanMultiplierBps / 10_000}× your savings).`);
     const ix = await requestLoanIx(client.identity, kasa.address, me.data.loanCount, parsed, Number(installments));
-    await run(`Prośba o pożyczkę ${formatZl(parsed)}`, () => client.sendTransaction([ix]));
+    await run(`Loan request ${formatZl(parsed)}`, () => client.sendTransaction([ix]));
     setAmount("");
   }
 
   return (
     <Card>
-      <h2 className="font-bold text-slate-900 text-sm mb-1">Poproś o pożyczkę</h2>
+      <h2 className="font-bold text-slate-900 text-sm mb-1">Request a loan</h2>
       <p className="text-[11px] text-slate-500 mb-3">
-        Możesz pożyczyć do <strong>{formatZl(limit)}</strong>, bez odsetek. Nikt tego nie zatwierdza. Twoje oszczędności zostaną
-        zablokowane do czasu spłaty, a resztę kwoty muszą poręczyć inni członkowie.
+        You can borrow up to <strong>{formatZl(limit)}</strong>, interest-free. Nobody approves it. Your savings will be locked
+        until the loan is repaid, and other members have to guarantee the rest.
       </p>
       <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
         <div>
-          <Label htmlFor="loan-amount">Kwota (zł)</Label>
+          <Label htmlFor="loan-amount">Amount (PLN)</Label>
           <Input id="loan-amount" inputMode="decimal" placeholder={formatZl(limit, false)} value={amount} onChange={(e) => setAmount(e.target.value)} />
         </div>
         <div>
-          <Label htmlFor="loan-inst">Liczba rat</Label>
+          <Label htmlFor="loan-inst">Number of installments</Label>
           <Select id="loan-inst" value={installments} onChange={(e) => setInstallments(e.target.value)}>
             {Array.from({ length: kasa.data.maxInstallments }, (_, i) => i + 1).map((n) => (
               <option key={n} value={n}>
-                {n} × co {formatDuration(kasa.data.periodSecs)}
+                {n} × every {formatDuration(kasa.data.periodSecs)}
               </option>
             ))}
           </Select>
         </div>
         <Button type="submit" disabled={!!busy || limit === 0n}>
-          Poproś o pożyczkę
+          Request a loan
         </Button>
       </form>
       {parsed !== null && parsed > 0n && (
         <div className="flex flex-wrap gap-2 mt-3">
-          <Badge tone="emerald">Zablokujesz swoje: {formatZl(own)}</Badge>
+          <Badge tone="emerald">You lock your own: {formatZl(own)}</Badge>
           <Badge tone={fromGuarantors > 0n ? "sky" : "emerald"}>
-            {fromGuarantors > 0n ? `Inni muszą poręczyć: ${formatZl(fromGuarantors)}` : "Bez poręczeń – wypłata od razu"}
+            {fromGuarantors > 0n ? `Others must guarantee: ${formatZl(fromGuarantors)}` : "No guarantees needed – paid out right away"}
           </Badge>
         </div>
       )}
-      {limit === 0n && <p className="text-[11px] text-slate-500 mt-2">Najpierw coś odłóż – pożyczyć możesz kilka razy tyle, ile masz w kasie.</p>}
+      {limit === 0n && <p className="text-[11px] text-slate-500 mt-2">Save something first – you can borrow several times what you have in the fund.</p>}
       <ErrorText>{error}</ErrorText>
     </Card>
   );

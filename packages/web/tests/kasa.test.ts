@@ -24,12 +24,15 @@ test("splitProRata is exact and capped like the program", () => {
 
 test("złoty amounts parse to grosze and format back", () => {
   assert.equal(parseZl("12"), 1200n);
+  assert.equal(parseZl("1,234.5"), 123450n);
   assert.equal(parseZl("1 234,5"), 123450n);
   assert.equal(parseZl("0.07"), 7n);
-  assert.throws(() => parseZl("1,234"));
+  assert.equal(parseZl("1,234"), 123400n);
+  assert.equal(parseZl(formatZl(123450n, false)), 123450n);
+  assert.throws(() => parseZl("1.2.3"));
   assert.throws(() => parseZl("-5"));
-  assert.equal(formatZl(123450n), "1 234,50 zł");
-  assert.equal(formatZl(100000n, false), "1 000");
+  assert.equal(formatZl(123450n), "1,234.50 PLN");
+  assert.equal(formatZl(100000n, false), "1,000");
 });
 
 test("loan limit is a multiple of savings", () => {

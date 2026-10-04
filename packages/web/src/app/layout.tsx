@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Kasa bez zarządu",
+  title: "Boardless – a shared fund with no board, no treasurer, no bank",
   description:
-    "Kasa zapomogowo-pożyczkowa bez zarządu i skarbnika: oszczędności trzyma program na Solanie, pożyczki zabezpieczają poręczenia, a zaległe raty egzekwuje kod.",
+    "A mutual savings and loan fund with no board and no treasurer: a Solana program holds the savings, guarantees secure the loans, and code collects overdue installments.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pl">
+    <html lang="en">
       <body className="min-h-screen text-slate-700 antialiased">{children}</body>
     </html>
   );

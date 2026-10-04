@@ -25,10 +25,12 @@ export function explorerAddress(address: string) {
   return `https://explorer.solana.com/address/${address}?cluster=${CLUSTER}`;
 }
 
-/** "1234,5" / "1 234.50" / "12" -> grosze. Throws on anything that is not a non-negative amount. */
+/** "1234.5" / "1,234.50" / "12,5" -> grosze. Throws on anything that is not a non-negative amount. */
 export function parseZl(text: string): bigint {
-  const clean = text.replace(/\s/g, "").replace(",", ".");
-  if (!/^\d+(\.\d{0,2})?$/.test(clean)) throw new Error("Niepoprawna kwota.");
+  let clean = text.replace(/\s/g, "");
+  // A comma is a decimal separator only in "12,5" / "12,50"; otherwise it groups thousands.
+  clean = clean.includes(".") || !/^\d+,\d{1,2}$/.test(clean) ? clean.replace(/,/g, "") : clean.replace(",", ".");
+  if (!/^\d+(\.\d{0,2})?$/.test(clean)) throw new Error("Invalid amount.");
   const [whole, frac = ""] = clean.split(".");
   return BigInt(whole) * 100n + BigInt((frac + "00").slice(0, 2));
 }
@@ -37,16 +39,16 @@ export function formatZl(grosze: bigint | number, withUnit = true): string {
   const value = BigInt(grosze);
   const sign = value < 0n ? "-" : "";
   const abs = value < 0n ? -value : value;
-  const whole = (abs / 100n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  const whole = (abs / 100n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   const frac = (abs % 100n).toString().padStart(2, "0");
-  return `${sign}${whole}${frac === "00" ? "" : "," + frac}${withUnit ? " zł" : ""}`;
+  return `${sign}${whole}${frac === "00" ? "" : "." + frac}${withUnit ? " PLN" : ""}`;
 }
 
 export function formatSol(lamports: bigint | number, maxDecimals = 3): string {
   const value = BigInt(lamports);
   const whole = value / LAMPORTS_PER_SOL;
   const frac = (value % LAMPORTS_PER_SOL).toString().padStart(9, "0").slice(0, maxDecimals).replace(/0+$/, "");
-  return `${whole}${frac ? "," + frac : ""}`;
+  return `${whole}${frac ? "." + frac : ""}`;
 }
 
 export function shortAddress(address: string, chars = 4) {
@@ -162,17 +164,15 @@ export function splitProRata(total: bigint, weights: bigint[]): bigint[] {
 }
 
 export const LOAN_STATUS_LABEL: Record<LoanStatus, string> = {
-  [LoanStatus.Pending]: "Czeka na poręczenia",
-  [LoanStatus.Active]: "Spłacana",
-  [LoanStatus.Repaid]: "Spłacona",
-  [LoanStatus.Cancelled]: "Bez wypłaty",
+  [LoanStatus.Pending]: "Awaiting guarantees",
+  [LoanStatus.Active]: "Being repaid",
+  [LoanStatus.Repaid]: "Repaid",
+  [LoanStatus.Cancelled]: "Cancelled",
 };
 
-/** "1 rata", "2–4 raty", "5 rat" (and 12–14 rat), as Polish counts them. */
-export function plural(n: number, one: string, few: string, many: string) {
-  if (n === 1) return one;
-  const tens = n % 100;
-  return n % 10 >= 2 && n % 10 <= 4 && (tens < 12 || tens > 14) ? few : many;
+/** "1 installment", "2 installments". */
+export function plural(n: number, one: string, many: string) {
+  return n === 1 ? one : many;
 }
 
 export function randomId(): bigint {
@@ -184,54 +184,54 @@ export function utf8Length(text: string) {
   return new TextEncoder().encode(text).length;
 }
 
-/** Polish messages for the program's custom errors (codes 6000+). */
-const PROGRAM_ERRORS_PL: Record<number, string> = {
-  6000: "Nazwa kasy musi mieć od 1 do 40 bajtów.",
-  6001: "Imię lub pseudonim musi mieć od 1 do 24 bajtów.",
-  6002: "Limit pożyczki musi wynosić od 1× do 5× oszczędności.",
-  6003: "Niedozwolona liczba rat w tej kasie.",
-  6004: "Okres raty musi wynosić od 30 sekund do 90 dni.",
-  6005: "Karencja jest za długa.",
-  6006: "Kwota musi być większa od zera.",
-  6007: "Program odrzucił: za mało wolnych (niezablokowanych) oszczędności.",
-  6008: "Program odrzucił: pożyczka przekracza limit tej kasy (wielokrotność Twoich oszczędności).",
-  6009: "Masz już otwartą pożyczkę w tej kasie.",
-  6010: "Ta pożyczka nie czeka już na poręczenia.",
-  6011: "Ta pożyczka nie jest aktywna.",
-  6012: "Program odrzucił: tylko pożyczkobiorca może to zrobić.",
-  6013: "Program odrzucił: nie można poręczyć własnej pożyczki.",
-  6014: "Pożyczka ma już maksymalnie 3 poręczycieli.",
-  6015: "Poręczenie jest większe niż brakująca kwota.",
-  6016: "Nie jesteś poręczycielem tej pożyczki.",
-  6017: "Program odrzucił: pożyczka nie jest jeszcze w całości pokryta oszczędnościami i poręczeniami.",
-  6018: "Kwota przekracza to, co zostało do spłaty.",
-  6019: "Program odrzucił: żadna rata nie jest jeszcze zaległa (trwa czas na spóźnienie).",
-  6020: "Konta poręczycieli nie zgadzają się z pożyczką.",
-  6021: "Konto należy do innej kasy.",
-  6022: "Błąd arytmetyczny.",
-  6023: "Program odrzucił: termin żadnej raty jeszcze nie minął.",
-  6024: "Automatyczna spłata jest wyłączona albo w portfelu brakuje pieniędzy.",
-  6025: "Program odrzucił: to konto nie należy do osoby, która płaci.",
-  6026: "Nie ustawiono składki stałej.",
-  6027: "Kolejna składka nie jest jeszcze wymagalna.",
+/** Messages for the program's custom errors (codes 6000+). */
+const PROGRAM_ERRORS: Record<number, string> = {
+  6000: "The fund name must be 1 to 40 bytes long.",
+  6001: "The name or nickname must be 1 to 24 bytes long.",
+  6002: "The loan limit must be between 1× and 5× savings.",
+  6003: "This number of installments is not allowed in this fund.",
+  6004: "The installment period must be between 30 seconds and 90 days.",
+  6005: "The grace period is too long.",
+  6006: "The amount must be greater than zero.",
+  6007: "Rejected by the program: not enough free (unlocked) savings.",
+  6008: "Rejected by the program: the loan exceeds this fund's limit (a multiple of your savings).",
+  6009: "You already have an open loan in this fund.",
+  6010: "This loan is no longer waiting for guarantees.",
+  6011: "This loan is not active.",
+  6012: "Rejected by the program: only the borrower can do this.",
+  6013: "Rejected by the program: you cannot guarantee your own loan.",
+  6014: "This loan already has the maximum of 3 guarantors.",
+  6015: "The guarantee is larger than the amount still missing.",
+  6016: "You are not a guarantor of this loan.",
+  6017: "Rejected by the program: the loan is not yet fully covered by savings and guarantees.",
+  6018: "The amount exceeds what is left to repay.",
+  6019: "Rejected by the program: no installment is overdue yet (the grace period is still running).",
+  6020: "The guarantor accounts do not match the loan.",
+  6021: "The account belongs to a different fund.",
+  6022: "Arithmetic error.",
+  6023: "Rejected by the program: no installment is due yet.",
+  6024: "Automatic repayment is turned off or the wallet does not have enough money.",
+  6025: "Rejected by the program: this account does not belong to the person paying.",
+  6026: "No standing contribution is set.",
+  6027: "The next contribution is not due yet.",
 };
 
-/** Turns wallet/RPC/program errors into one readable Polish sentence. */
+/** Turns wallet/RPC/program errors into one readable sentence. */
 export function describeError(err: unknown): string {
   const text = collectErrorText(err);
   const custom = text.match(/custom program error: 0x([0-9a-f]+)/i) ?? text.match(/"Custom":\s*(\d+)/);
   if (custom) {
     const code = custom[0].includes("0x") ? parseInt(custom[1], 16) : Number(custom[1]);
-    if (PROGRAM_ERRORS_PL[code]) return PROGRAM_ERRORS_PL[code];
+    if (PROGRAM_ERRORS[code]) return PROGRAM_ERRORS[code];
   }
   const anchorCode = text.match(/Error Number: (\d+)/);
-  if (anchorCode && PROGRAM_ERRORS_PL[Number(anchorCode[1])]) return PROGRAM_ERRORS_PL[Number(anchorCode[1])];
-  if (/ConstraintHasOne|ConstraintSeeds|2001|2006/.test(text)) return "Program odrzucił: konto nie zgadza się z zapisanym w kasie.";
-  if (/reject|denied|cancel/i.test(text)) return "Transakcja odrzucona w portfelu.";
-  if (/insufficient funds|0x1\b/i.test(text)) return "Za mało tPLN na koncie. Dobierz testowe złotówki przyciskiem u góry.";
-  if (/insufficient|lamports/i.test(text)) return "Za mało SOL na opłaty (devnet).";
-  if (/blockhash/i.test(text)) return "Transakcja wygasła – spróbuj ponownie.";
-  return text.split("\n")[0].slice(0, 240) || "Nieznany błąd.";
+  if (anchorCode && PROGRAM_ERRORS[Number(anchorCode[1])]) return PROGRAM_ERRORS[Number(anchorCode[1])];
+  if (/ConstraintHasOne|ConstraintSeeds|2001|2006/.test(text)) return "Rejected by the program: the account does not match the one stored in the fund.";
+  if (/reject|denied|cancel/i.test(text)) return "Transaction rejected in the wallet.";
+  if (/insufficient funds|0x1\b/i.test(text)) return "Not enough tPLN in your account. Get test PLN with the button at the top.";
+  if (/insufficient|lamports/i.test(text)) return "Not enough SOL for fees (devnet).";
+  if (/blockhash/i.test(text)) return "The transaction expired – please try again.";
+  return text.split("\n")[0].slice(0, 240) || "Unknown error.";
 }
 
 function collectErrorText(err: unknown, depth = 0): string {

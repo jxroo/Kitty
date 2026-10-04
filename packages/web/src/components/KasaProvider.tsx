@@ -70,7 +70,7 @@ export function KasaProvider({ children }: { children: React.ReactNode }) {
   const [client, setClient] = useState<AppClient | null>(null);
   useEffect(() => setClient(createAppClient()), []);
   if (!client) {
-    return <div className="min-h-screen flex items-center justify-center text-sm text-slate-500">Ładowanie…</div>;
+    return <div className="min-h-screen flex items-center justify-center text-sm text-slate-500">Loading…</div>;
   }
   return (
     <ClientProvider client={client}>
@@ -162,7 +162,7 @@ function KasaState({ client, children }: { client: AppClient; children: React.Re
 
   const requestFaucet = useCallback(async () => {
     if (!wallet) return;
-    const label = "Testowe złotówki z faucetu";
+    const label = "Test PLN from the faucet";
     setBusy(label);
     try {
       const res = await fetch("/api/faucet", {

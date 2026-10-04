@@ -19,24 +19,24 @@ export function Header({ onHome }: { onHome: () => void }) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-white text-lg tracking-[-0.03em]">Kasa bez zarządu</span>
+              <span className="font-extrabold text-white text-lg tracking-[-0.03em]">Boardless</span>
               <span className="text-[10px] font-mono font-semibold uppercase tracking-[0.12em] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
                 Solana devnet
               </span>
             </div>
-            <p className="text-xs text-slate-500">Wspólna kasa dla grupy: odkładacie i pożyczacie sobie bez odsetek – bez skarbnika i bez banku</p>
+            <p className="text-xs text-slate-500">A shared fund for your group: save together and lend to each other interest-free – no treasurer, no bank</p>
           </div>
         </button>
         <div className="flex items-center gap-2">
           <button
             onClick={() => refresh()}
-            title="Odśwież stan z łańcucha"
-            aria-label="Odśwież stan z łańcucha"
+            title="Refresh from the chain"
+            aria-label="Refresh from the chain"
             className="p-2 text-slate-500 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 rounded-lg border border-slate-300 transition"
           >
             <RefreshCw className="w-4 h-4" aria-hidden />
           </button>
-          <WalletReadyGate client={client} fallback={<span className="text-xs text-slate-400">Szukam portfeli…</span>}>
+          <WalletReadyGate client={client} fallback={<span className="text-xs text-slate-400">Looking for wallets…</span>}>
             <WalletButton />
           </WalletReadyGate>
         </div>
@@ -55,17 +55,17 @@ function WalletButton() {
   if (wallet) {
     return (
       <div className="flex items-center gap-2">
-        <Button variant="ghost" onClick={requestFaucet} disabled={!!busy} title="Testowe tPLN (i trochę SOL na opłaty) z faucetu devnet">
+        <Button variant="ghost" onClick={requestFaucet} disabled={!!busy} title="Test tPLN (and a little SOL for fees) from the devnet faucet">
           <Coins className="w-3.5 h-3.5" aria-hidden />
-          Dobierz testowe zł
+          Get test PLN
         </Button>
         <div className="text-right">
           <div className="font-mono text-xs font-semibold text-slate-900">{shortAddress(wallet)}</div>
           <div className="text-[11px] text-slate-500">
-            {tokenBalance !== null ? formatZl(tokenBalance) : "0 zł"} · {solBalance !== null ? `${formatSol(solBalance)} SOL` : "…"}
+            {tokenBalance !== null ? formatZl(tokenBalance) : "0 PLN"} · {solBalance !== null ? `${formatSol(solBalance)} SOL` : "…"}
           </div>
         </div>
-        <Button variant="ghost" onClick={() => disconnect.dispatch()} title="Rozłącz portfel" aria-label="Rozłącz portfel">
+        <Button variant="ghost" onClick={() => disconnect.dispatch()} title="Disconnect wallet" aria-label="Disconnect wallet">
           <LogOut className="w-3.5 h-3.5" aria-hidden />
         </Button>
       </div>
@@ -76,13 +76,13 @@ function WalletButton() {
     <div className="relative">
       <Button variant="secondary" onClick={() => setOpen((v) => !v)} disabled={connect.isRunning}>
         <Wallet className="w-3.5 h-3.5" aria-hidden />
-        {connect.isRunning ? "Łączenie…" : "Połącz portfel"}
+        {connect.isRunning ? "Connecting…" : "Connect wallet"}
       </Button>
       {open && (
         <div className="absolute right-0 mt-2 w-64 bg-panel border border-slate-200 rounded-xl shadow-lg p-2 z-50">
           {wallets.length === 0 && (
             <p className="text-xs text-slate-600 p-2">
-              Nie wykryto portfela. Zainstaluj Phantom, Solflare lub Backpack i przełącz go na devnet.
+              No wallet detected. Install Phantom, Solflare or Backpack and switch it to devnet.
             </p>
           )}
           {wallets.map((w) => (

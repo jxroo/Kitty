@@ -33,7 +33,7 @@ const arg = (name: string) => {
 };
 const base = arg("--base") ?? "https://web-production-ad49f.up.railway.app";
 const revoke = process.argv.includes("--revoke");
-const log = (line: string) => console.log(`${new Date().toLocaleTimeString("pl-PL")} ${line}`);
+const log = (line: string) => console.log(`${new Date().toLocaleTimeString("en-GB")} ${line}`);
 
 async function main() {
   if (!existsSync(WALLETS_FILE)) throw new Error("No .e2e-wallets.json: run scripts/e2e-devnet.ts once, then scripts/burners.ts fund.");
@@ -73,7 +73,7 @@ async function main() {
   await send(bartekC, "Bartek wypłaca pożyczkę i włącza polecenie zapłaty", await disburseIxs(bartek, loan, l, k, { mandate: true }));
   l = (await fetchLoan(rpc, loan)).data;
 
-  const due1 = new Date((Number(l.disbursedAt) + 60) * 1000).toLocaleTimeString("pl-PL");
+  const due1 = new Date((Number(l.disbursedAt) + 60) * 1000).toLocaleTimeString("en-GB");
   log("");
   log(`Kasa gotowa: ${base}/?kasa=${kasa}`);
   log(`Rata 1 (250 zł) jest wymagalna o ${due1} (czas klastra). Bot pobierze ją sam z portfela Bartka.`);
@@ -87,7 +87,7 @@ async function main() {
   }
   log(`✓ Bot pobrał ${formatZl(l.autopaid)} z portfela Bartka (polecenie zapłaty).`);
   await send(bartekC, "Bartek cofa polecenie zapłaty: przestaje płacić", [await revokeMandateIx(bartek, MINT)]);
-  const due2 = new Date((Number(l.disbursedAt) + 2 * 60 + 15) * 1000).toLocaleTimeString("pl-PL");
+  const due2 = new Date((Number(l.disbursedAt) + 2 * 60 + 15) * 1000).toLocaleTimeString("en-GB");
   log(`Rata 2 zejdzie z zabezpieczeń Bartka po karencji, ok. ${due2}: zrobi to bot, nikt nie klika.`);
 }
 
