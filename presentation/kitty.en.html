@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Kitty · pitch</title>
+<style>
+    @font-face { font-family: "Inter"; src: url("fonts/inter-normal-latin.woff2") format("woff2"); font-weight: 400 900; }
+  @font-face { font-family: "Inter"; src: url("fonts/inter-normal-latin-ext.woff2") format("woff2"); font-weight: 400 900; unicode-range: U+0100-024F; }
+  @font-face { font-family: "JetBrains Mono"; src: url("fonts/jetbrains-mono-normal-latin.woff2") format("woff2"); font-weight: 400 800; }
+  @font-face { font-family: "JetBrains Mono"; src: url("fonts/jetbrains-mono-normal-latin-ext.woff2") format("woff2"); font-weight: 400 800; unicode-range: U+0100-024F; }
+
+  :root {
+    --void: #04070d; --panel: #0a0f17; --rule: #1b2430;
+    --cream: #efe6d2; --text: #c3cbd6; --muted: #7d8896; --faint: #4a5563;
+    --line: #34d399; --mint: #6ee7b7; --rose: #fb7185;
+  }
+  @page { size: 1280px 720px; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #000; font-family: Inter, system-ui, sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+
+  .slide {
+    width: 1280px; height: 720px; background: var(--void); position: relative; overflow: hidden;
+    padding: 84px 96px 72px; display: flex; flex-direction: column;
+    break-after: page; page-break-after: always;
+  }
+  .slide:last-child { break-after: auto; page-break-after: auto; }
+
+  .kicker { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--mint); }
+  h1, h2, .serif { font-family: Inter, system-ui, sans-serif; color: var(--cream); font-weight: 600; letter-spacing: -.03em; }
+  h1 { font-size: 150px; line-height: .95; font-weight: 700; letter-spacing: -.055em; }
+  h2 { font-size: 48px; line-height: 1.12; max-width: 980px; margin-top: 22px; }
+  h2 em { font-style: normal; color: var(--mint); }
+  p { font-size: 19px; line-height: 1.55; }
+  .lead { font-size: 22px; line-height: 1.5; color: var(--text); max-width: 760px; }
+  .rule { width: 72px; height: 1px; background: var(--line); box-shadow: 0 0 12px var(--line); margin: 30px 0; }
+
+  .footer { position: absolute; left: 96px; right: 96px; bottom: 34px; display: flex; justify-content: space-between;
+    font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+
+  .shot { border-radius: 14px; border: 1px solid var(--rule); display: block; }
+  .crop { overflow: hidden; border-radius: 14px; border: 1px solid var(--rule); box-shadow: 0 12px 28px rgba(0,0,0,.45); position: relative; z-index: 1; }
+  .crop img { display: block; width: 100%; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; flex: 1; align-items: center; }
+  .num { font-family: Inter, sans-serif; font-size: 84px; line-height: 1; color: var(--cream); font-weight: 600; letter-spacing: -.04em; }
+  .num small { font-size: 36px; font-weight: 500; color: var(--muted); letter-spacing: -.02em; }
+  .label { font-size: 16px; color: var(--muted); margin-top: 12px; line-height: 1.45; }
+  .src { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .06em; color: var(--faint); margin-top: 10px; }
+
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; margin-top: auto; margin-bottom: 40px; }
+  .three > div { border-top: 1px solid var(--rule); padding-top: 26px; }
+
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; margin-top: auto; margin-bottom: 56px; }
+  .step { border-top: 1px solid var(--rule); padding-top: 24px; position: relative; }
+  .step::before { content: ""; position: absolute; top: -3px; left: 0; width: 5px; height: 5px; border-radius: 50%; background: var(--line); box-shadow: 0 0 10px var(--line); }
+  .step .n { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--mint); letter-spacing: .18em; }
+  .step h3 { font-family: Inter, sans-serif; font-weight: 600; letter-spacing: -.02em; font-size: 26px; color: var(--cream); margin: 12px 0 10px; }
+  .step p { font-size: 16px; color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 40px; }
+  th { text-align: left; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--faint); padding: 0 0 14px; }
+  td { padding: 13px 24px 13px 0; border-top: 1px solid var(--rule); font-size: 18px; vertical-align: top; }
+  td:first-child { color: var(--muted); width: 46%; }
+  td:last-child { color: var(--cream); }
+
+  .list { list-style: none; }
+  .list li { font-size: 19px; line-height: 1.5; padding: 14px 0; border-top: 1px solid var(--rule); color: var(--text); }
+  .list li b { color: var(--cream); font-weight: 600; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+</style>
+</head>
+<body>
+
+<!-- 1 · Title -->
+<section class="slide">
+  <img src="../packages/web/src/app/opengraph-image.png" alt="" style="position:absolute; right:-250px; top:50%; transform:translateY(-50%); height:1000px; opacity:.85">
+  <div style="position:absolute; inset:0; background:linear-gradient(90deg, var(--void) 38%, rgba(4,7,13,.75) 60%, rgba(4,7,13,0) 85%)"></div>
+  <div style="position:relative; margin-top:auto; margin-bottom:auto">
+    <div class="kicker">HackYeah 2026 · Superteam Poland</div>
+    <h1 style="margin-top:28px">Kitty</h1>
+    <div class="rule"></div>
+    <p class="serif" style="font-size:32px; font-weight:500; line-height:1.3">The group kitty, <span style="color:var(--mint)">minus the treasurer.</span></p>
+    <p class="lead" style="margin-top:20px; max-width:560px; color:var(--muted)">Savings, 0% loans and direct debits for groups – enforced by a Solana program, not by people.</p>
+  </div>
+  <div class="footer" style="position:absolute"><span>Finance without intermediaries</span><span>Solana devnet</span></div>
+</section>
+
+<!-- 2 · Problem -->
+<section class="slide">
+  <div class="kicker">The problem</div>
+  <div class="split">
+    <div>
+      <h2 style="margin-top:0">Pooling money works only through someone you <em>have to trust.</em></h2>
+      <p class="lead" style="margin-top:32px; font-size:20px; color:var(--muted)">Coworkers, schools, friends and families already save together and lend to each other at 0%. It runs on a treasurer who holds the money, a board that approves loans and a payroll that deducts installments.</p>
+    </div>
+    <div style="display:grid; gap:48px">
+      <div style="border-top:1px solid var(--rule); padding-top:26px">
+        <div class="num">61,000 <small>zł</small></div>
+        <div class="label">of colleagues' savings taken by a workplace fund treasurer and lost on a crypto exchange.</div>
+        <div class="src">Puls Legnicy · March 2024</div>
+      </div>
+      <div style="border-top:1px solid var(--rule); padding-top:26px">
+        <div class="num">261,510 <small>zł</small></div>
+        <div class="label">of withdrawals hidden by a fund cashier with falsified reports, for ten years.</div>
+        <div class="src">Court of Appeal in Katowice · II AKa 98/15</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>02</span></div>
+</section>
+
+<!-- 3 · Idea -->
+<section class="slide">
+  <div class="kicker">The idea</div>
+  <h2>Replace every intermediary <em>with a rule</em> nobody can change.</h2>
+  <p class="lead" style="margin-top:28px; color:var(--muted)">The money sits in an account owned by a program. The rules are public code with no admin key – not for the founder, not for us.</p>
+  <div class="three">
+    <div><div class="num">100<small>%</small></div><div class="label">of every loan covered by locked savings</div></div>
+    <div><div class="num">0</div><div class="label">people who approve a loan</div></div>
+    <div><div class="num">0</div><div class="label">clicks to pay an installment on time</div></div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>03</span></div>
+</section>
+
+<!-- 4 · Product -->
+<section class="slide">
+  <div class="kicker">The product</div>
+  <h2 style="font-size:40px">A shared fund anyone can open, join and check.</h2>
+  <div class="crop" style="margin-top:36px; height:430px">
+    <img src="shots/home.png" alt="Kitty home screen" style="width:114%; margin-left:-7.5%; margin-top:-0.5%">
+  </div>
+  <div class="footer"><span>Kitty</span><span>04</span></div>
+</section>
+
+<!-- 5 · How it works -->
+<section class="slide">
+  <div class="kicker">How it works</div>
+  <h2>Save together. Borrow with guarantors. <em>Let installments pay themselves.</em></h2>
+  <div class="steps">
+    <div class="step"><div class="n">01</div><h3>Save</h3><p>Members pay into the program's vault. A standing contribution can be pulled every period.</p></div>
+    <div class="step"><div class="n">02</div><h3>Borrow</h3><p>Up to a multiple of your savings. Your free savings lock first; co-members pledge the rest.</p></div>
+    <div class="step"><div class="n">03</div><h3>Get paid</h3><p>Once locked savings cover 100% of the loan, it pays out. Nobody approves it.</p></div>
+    <div class="step"><div class="n">04</div><h3>Repay</h3><p>On the due date the installment leaves the wallet under a revocable SPL allowance.</p></div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>05</span></div>
+</section>
+
+<!-- 6 · Direct debit -->
+<section class="slide">
+  <div class="split" style="grid-template-columns: 1fr 1.15fr; gap:64px">
+    <div>
+      <div class="kicker">No payroll, no bank</div>
+      <h2 style="font-size:46px">The installment leaves the wallet <em>by itself.</em></h2>
+      <p style="margin-top:28px; color:var(--muted)">The borrower approves a capped allowance once. On the due date a bot with no special rights sends the pull; the program takes only what is due. Revoke it, and the locked savings pay instead.</p>
+    </div>
+    <div class="crop" style="height:540px">
+      <img src="shots/history.png" alt="Fund history: contributions and installments collected by the bot" style="margin-top:-104px">
+    </div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>06</span></div>
+</section>
+
+<!-- 7 · Never loses -->
+<section class="slide">
+  <div class="kicker">Why the fund never loses</div>
+  <div class="split" style="grid-template-columns: 1.1fr 1fr; gap:64px; align-items:center">
+    <div>
+      <p class="serif" style="font-size:44px; line-height:1.1; color:var(--cream); white-space:nowrap">vault = Σ savings − Σ lent</p>
+      <p style="margin-top:28px; color:var(--muted)">Every loan is fully covered before it pays out. A missed installment is taken from locked savings – the borrower's first, then the guarantors'. So every member's free money is always in the vault, ready to withdraw.</p>
+    </div>
+    <div style="display:grid; gap:20px; justify-items:end">
+      <div class="crop" style="width:400px"><img src="shots/vault.png" alt="The fund's money: saved minus lent, checked"></div>
+      <div class="crop" style="width:400px; height:262px"><img src="shots/rules.png" alt="This fund's rules"></div>
+    </div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>07</span></div>
+</section>
+
+<!-- 8 · Middleman -->
+<section class="slide">
+  <div class="kicker">Where the middleman disappears</div>
+  <h2 style="font-size:44px">Every intermediary <em>becomes a rule.</em></h2>
+  <table style="margin-top:36px">
+    <thead><tr><th>Today</th><th>In Kitty</th></tr></thead>
+    <tbody>
+      <tr><td>A treasurer holds the money</td><td>A program-owned vault; only the rules move money out</td></tr>
+      <tr><td>A board or a bank approves the loan</td><td>Nobody approves – it pays out when collateral covers 100%</td></tr>
+      <tr><td>Payroll or a bank collects installments</td><td>A revocable allowance; the program takes only what is due</td></tr>
+      <tr><td>Debt collectors chase defaulters</td><td>After grace, anyone can cover the installment from collateral</td></tr>
+      <tr><td>A credit bureau scores the borrower</td><td>Every repayment record is public on the chain</td></tr>
+      <tr><td>The board can change the rules</td><td>No instruction changes them, and there is no admin key</td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span>Kitty</span><span>08</span></div>
+</section>
+
+<!-- 9 · Proof -->
+<section class="slide">
+  <div class="kicker">It works</div>
+  <h2>Live on Solana devnet, <em>backed by tests.</em></h2>
+  <p class="lead" style="margin-top:28px; color:var(--muted)">Every claim in this deck is a test you can run or a transaction you can open in the explorer.</p>
+  <div class="three" style="grid-template-columns:repeat(4,1fr); gap:44px">
+    <div><div class="num" style="font-size:72px">20<small>/20</small></div><div class="label">Rust tests on LiteSVM with the real SPL Token program</div></div>
+    <div><div class="num" style="font-size:72px">18<small>/18</small></div><div class="label">web tests: the app's math matches the program</div></div>
+    <div><div class="num" style="font-size:72px">E2E</div><div class="label">a devnet run ending in a bank run – vault back to 0</div></div>
+    <div><div class="num" style="font-size:72px">Bot</div><div class="label">pulls installments on Railway, with no special rights</div></div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>09</span></div>
+</section>
+
+<!-- 10 · Close -->
+<section class="slide" style="justify-content:center">
+  <img src="../packages/web/src/app/opengraph-image.png" alt="" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); height:1100px; opacity:.18">
+  <div style="position:relative; text-align:center">
+    <p class="serif" style="font-size:60px; line-height:1.1"><span style="color:var(--mint)">No one</span> holds the money.</p>
+    <div class="rule" style="margin:40px auto"></div>
+    <p style="font-size:26px; font-weight:500; color:var(--cream); letter-spacing:-.01em">Jaromir Sewastianow · Michal Piotrowski</p>
+    <p class="mono" style="font-size:14px; letter-spacing:.04em; color:var(--muted); margin-top:16px">github.com/jxroo/kasa-bez-zarzadu</p>
+  </div>
+  <div class="footer"><span>Kitty</span><span>Thank you</span></div>
+</section>
+
+</body>
+</html>

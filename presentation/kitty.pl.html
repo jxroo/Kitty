@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Kitty · prezentacja</title>
+<style>
+    @font-face { font-family: "Inter"; src: url("fonts/inter-normal-latin.woff2") format("woff2"); font-weight: 400 900; }
+  @font-face { font-family: "Inter"; src: url("fonts/inter-normal-latin-ext.woff2") format("woff2"); font-weight: 400 900; unicode-range: U+0100-024F; }
+  @font-face { font-family: "JetBrains Mono"; src: url("fonts/jetbrains-mono-normal-latin.woff2") format("woff2"); font-weight: 400 800; }
+  @font-face { font-family: "JetBrains Mono"; src: url("fonts/jetbrains-mono-normal-latin-ext.woff2") format("woff2"); font-weight: 400 800; unicode-range: U+0100-024F; }
+
+  :root {
+    --void: #04070d; --panel: #0a0f17; --rule: #1b2430;
+    --cream: #efe6d2; --text: #c3cbd6; --muted: #7d8896; --faint: #4a5563;
+    --line: #34d399; --mint: #6ee7b7; --rose: #fb7185;
+  }
+  @page { size: 1280px 720px; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #000; font-family: Inter, system-ui, sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+
+  .slide {
+    width: 1280px; height: 720px; background: var(--void); position: relative; overflow: hidden;
+    padding: 84px 96px 72px; display: flex; flex-direction: column;
+    break-after: page; page-break-after: always;
+  }
+  .slide:last-child { break-after: auto; page-break-after: auto; }
+
+  .kicker { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--mint); }
+  h1, h2, .serif { font-family: Inter, system-ui, sans-serif; color: var(--cream); font-weight: 600; letter-spacing: -.03em; }
+  h1 { font-size: 150px; line-height: .95; font-weight: 700; letter-spacing: -.055em; }
+  h2 { font-size: 48px; line-height: 1.12; max-width: 980px; margin-top: 22px; }
+  h2 em { font-style: normal; color: var(--mint); }
+  p { font-size: 19px; line-height: 1.55; }
+  .lead { font-size: 22px; line-height: 1.5; color: var(--text); max-width: 760px; }
+  .rule { width: 72px; height: 1px; background: var(--line); box-shadow: 0 0 12px var(--line); margin: 30px 0; }
+
+  .footer { position: absolute; left: 96px; right: 96px; bottom: 34px; display: flex; justify-content: space-between;
+    font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+
+  .shot { border-radius: 14px; border: 1px solid var(--rule); display: block; }
+  .crop { overflow: hidden; border-radius: 14px; border: 1px solid var(--rule); box-shadow: 0 12px 28px rgba(0,0,0,.45); position: relative; z-index: 1; }
+  .crop img { display: block; width: 100%; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; flex: 1; align-items: center; }
+  .num { font-family: Inter, sans-serif; font-size: 84px; line-height: 1; color: var(--cream); font-weight: 600; letter-spacing: -.04em; }
+  .num small { font-size: 36px; font-weight: 500; color: var(--muted); letter-spacing: -.02em; }
+  .label { font-size: 16px; color: var(--muted); margin-top: 12px; line-height: 1.45; }
+  .src { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .06em; color: var(--faint); margin-top: 10px; }
+
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; margin-top: auto; margin-bottom: 40px; }
+  .three > div { border-top: 1px solid var(--rule); padding-top: 26px; }
+
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; margin-top: auto; margin-bottom: 56px; }
+  .step { border-top: 1px solid var(--rule); padding-top: 24px; position: relative; }
+  .step::before { content: ""; position: absolute; top: -3px; left: 0; width: 5px; height: 5px; border-radius: 50%; background: var(--line); box-shadow: 0 0 10px var(--line); }
+  .step .n { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--mint); letter-spacing: .18em; }
+  .step h3 { font-family: Inter, sans-serif; font-weight: 600; letter-spacing: -.02em; font-size: 26px; color: var(--cream); margin: 12px 0 10px; }
+  .step p { font-size: 16px; color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 40px; }
+  th { text-align: left; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--faint); padding: 0 0 14px; }
+  td { padding: 13px 24px 13px 0; border-top: 1px solid var(--rule); font-size: 18px; vertical-align: top; }
+  td:first-child { color: var(--muted); width: 46%; }
+  td:last-child { color: var(--cream); }
+
+  .list { list-style: none; }
+  .list li { font-size: 19px; line-height: 1.5; padding: 14px 0; border-top: 1px solid var(--rule); color: var(--text); }
+  .list li b { color: var(--cream); font-weight: 600; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+</style>
+</head>
+<body>
+
+<!-- 1 · Title -->
+<section class="slide">
+  <img src="../packages/web/src/app/opengraph-image.png" alt="" style="position:absolute; right:-250px; top:50%; transform:translateY(-50%); height:1000px; opacity:.85">
+  <div style="position:absolute; inset:0; background:linear-gradient(90deg, var(--void) 38%, rgba(4,7,13,.75) 60%, rgba(4,7,13,0) 85%)"></div>
+  <div style="position:relative; margin-top:auto; margin-bottom:auto">
+    <div class="kicker">HackYeah 2026 · Superteam Poland</div>
+    <h1 style="margin-top:28px">Kitty</h1>
+    <div class="rule"></div>
+    <p class="serif" style="font-size:32px; font-weight:500; line-height:1.3">Wspólna kasa, <span style="color:var(--mint)">minus skarbnik.</span></p>
+    <p class="lead" style="margin-top:20px; max-width:560px; color:var(--muted)">Oszczędności, pożyczki 0% i polecenia zapłaty dla grup – egzekwowane przez program na Solanie, a nie przez ludzi.</p>
+  </div>
+  <div class="footer" style="position:absolute"><span>Finanse bez pośredników</span><span>Solana devnet</span></div>
+</section>
+
+<!-- 2 · Problem -->
+<section class="slide">
+  <div class="kicker">Problem</div>
+  <div class="split">
+    <div>
+      <h2 style="margin-top:0">Wspólne pieniądze działają tylko przez kogoś, <em>komu trzeba ufać.</em></h2>
+      <p class="lead" style="margin-top:32px; font-size:20px; color:var(--muted)">Współpracownicy, szkoły, znajomi i rodziny już dziś oszczędzają razem i pożyczają sobie nawzajem bez odsetek. Opiera się to na skarbniku, który trzyma pieniądze, zarządzie, który zatwierdza pożyczki, i płacach, z których potrąca się raty.</p>
+    </div>
+    <div style="display:grid; gap:48px">
+      <div style="border-top:1px solid var(--rule); padding-top:26px">
+        <div class="num">61,000 <small>zł</small></div>
+        <div class="label">oszczędności koleżanek i kolegów, które skarbnik kasy zakładowej wziął i stracił na giełdzie kryptowalut.</div>
+        <div class="src">Puls Legnicy · marzec 2024</div>
+      </div>
+      <div style="border-top:1px solid var(--rule); padding-top:26px">
+        <div class="num">261,510 <small>zł</small></div>
+        <div class="label">wypłat ukrywanych przez kasjera kasy w sfałszowanych raportach, przez dziesięć lat.</div>
+        <div class="src">Sąd Apelacyjny w Katowicach · II AKa 98/15</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>02</span></div>
+</section>
+
+<!-- 3 · Idea -->
+<section class="slide">
+  <div class="kicker">Pomysł</div>
+  <h2>Zastąp każdego pośrednika <em>regułą,</em> której nikt nie zmieni.</h2>
+  <p class="lead" style="margin-top:28px; color:var(--muted)">Pieniądze leżą na koncie należącym do programu. Zasady to publiczny kod bez klucza administratora – ani dla założyciela, ani dla nas.</p>
+  <div class="three">
+    <div><div class="num">100<small>%</small></div><div class="label">każdej pożyczki pokryte zablokowanymi oszczędnościami</div></div>
+    <div><div class="num">0</div><div class="label">osób zatwierdzających pożyczkę</div></div>
+    <div><div class="num">0</div><div class="label">kliknięć, by zapłacić ratę w terminie</div></div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>03</span></div>
+</section>
+
+<!-- 4 · Product -->
+<section class="slide">
+  <div class="kicker">Produkt</div>
+  <h2 style="font-size:40px">Wspólna kasa, którą każdy może założyć, dołączyć do niej i sprawdzić.</h2>
+  <div class="crop" style="margin-top:36px; height:430px">
+    <img src="shots/home.png" alt="Ekran główny Kitty" style="width:114%; margin-left:-7.5%; margin-top:-0.5%">
+  </div>
+  <div class="footer"><span>Kitty</span><span>04</span></div>
+</section>
+
+<!-- 5 · How it works -->
+<section class="slide">
+  <div class="kicker">Jak to działa</div>
+  <h2>Oszczędzajcie razem. Pożyczajcie z poręczeniami. <em>Niech raty płacą się same.</em></h2>
+  <div class="steps">
+    <div class="step"><div class="n">01</div><h3>Odkładaj</h3><p>Członkowie wpłacają do skarbca programu. Stała składka może być pobierana co okres.</p></div>
+    <div class="step"><div class="n">02</div><h3>Pożyczaj</h3><p>Do wielokrotności oszczędności. Najpierw blokują się Twoje wolne oszczędności, resztę poręczają inni.</p></div>
+    <div class="step"><div class="n">03</div><h3>Wypłać</h3><p>Gdy zablokowane oszczędności pokrywają 100% pożyczki, wypłaca się ona od razu. Nikt jej nie zatwierdza.</p></div>
+    <div class="step"><div class="n">04</div><h3>Spłacaj</h3><p>W dniu terminu rata schodzi z portfela w ramach odwoływalnej zgody SPL.</p></div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>05</span></div>
+</section>
+
+<!-- 6 · Direct debit -->
+<section class="slide">
+  <div class="split" style="grid-template-columns: 1fr 1.15fr; gap:64px">
+    <div>
+      <div class="kicker">Bez pensji i bez banku</div>
+      <h2 style="font-size:46px">Rata schodzi z portfela <em>sama.</em></h2>
+      <p style="margin-top:28px; color:var(--muted)">Pożyczkobiorca raz zatwierdza zgodę z limitem kwoty. W dniu terminu bot bez żadnych uprawnień wysyła pobranie, a program bierze tylko tyle, ile trzeba. Cofniesz zgodę – zapłacą zablokowane oszczędności.</p>
+    </div>
+    <div class="crop" style="height:540px">
+      <img src="shots/history.png" alt="Fund history: contributions and installments collected by the bot" style="margin-top:-104px">
+    </div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>06</span></div>
+</section>
+
+<!-- 7 · Never loses -->
+<section class="slide">
+  <div class="kicker">Dlaczego kasa nie traci</div>
+  <div class="split" style="grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap:64px; align-items:center">
+    <div>
+      <p class="serif" style="font-size:40px; line-height:1.15; color:var(--cream)">skarbiec = Σ oszczędności − Σ pożyczone</p>
+      <p style="margin-top:28px; color:var(--muted)">Każda pożyczka jest w całości pokryta, zanim się wypłaci. Niezapłacona rata jest brana z zablokowanych oszczędności – najpierw pożyczkobiorcy, potem poręczających. Dlatego wolne pieniądze każdego członka zawsze są w skarbcu i można je wyjąć.</p>
+    </div>
+    <div style="display:grid; gap:20px; justify-items:end">
+      <div class="crop" style="width:400px"><img src="shots/vault.png" alt="The fund's money: saved minus lent, checked"></div>
+      <div class="crop" style="width:400px; height:262px"><img src="shots/rules.png" alt="This fund's rules"></div>
+    </div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>07</span></div>
+</section>
+
+<!-- 8 · Middleman -->
+<section class="slide">
+  <div class="kicker">Gdzie znika pośrednik</div>
+  <h2 style="font-size:44px">Każdy pośrednik <em>staje się regułą.</em></h2>
+  <table style="margin-top:36px">
+    <thead><tr><th>Dziś</th><th>W Kitty</th></tr></thead>
+    <tbody>
+      <tr><td>Skarbnik trzyma pieniądze</td><td>Skarbiec należy do programu; pieniądze wychodzą tylko według zasad</td></tr>
+      <tr><td>Zarząd lub bank zatwierdza pożyczkę</td><td>Nikt nie zatwierdza – wypłata, gdy zabezpieczenie pokrywa 100%</td></tr>
+      <tr><td>Pensja lub bank potrąca raty</td><td>Odwoływalna zgoda; program bierze tylko to, co wymagalne</td></tr>
+      <tr><td>Windykacja ściga dłużników</td><td>Po czasie na spóźnienie każdy może pokryć ratę z zabezpieczenia</td></tr>
+      <tr><td>Biuro kredytowe ocenia pożyczkobiorcę</td><td>Historia spłat każdego jest publiczna na łańcuchu</td></tr>
+      <tr><td>Zarząd może zmienić regulamin</td><td>Żadna instrukcja ich nie zmienia i nie ma klucza admina</td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span>Kitty</span><span>08</span></div>
+</section>
+
+<!-- 9 · Proof -->
+<section class="slide">
+  <div class="kicker">Działa</div>
+  <h2>Na żywo na devnecie Solany, <em>poparte testami.</em></h2>
+  <p class="lead" style="margin-top:28px; color:var(--muted)">Każde twierdzenie z tej prezentacji to test, który możesz uruchomić, albo transakcja, którą otworzysz w eksploratorze.</p>
+  <div class="three" style="grid-template-columns:repeat(4,1fr); gap:44px">
+    <div><div class="num" style="font-size:72px">20<small>/20</small></div><div class="label">testów w Ruście na LiteSVM z prawdziwym programem SPL Token</div></div>
+    <div><div class="num" style="font-size:72px">18<small>/18</small></div><div class="label">testów webowych: matematyka aplikacji zgadza się z programem</div></div>
+    <div><div class="num" style="font-size:72px">E2E</div><div class="label">przebieg na devnecie kończący się „runem na bank” – skarbiec wraca do 0</div></div>
+    <div><div class="num" style="font-size:72px">Bot</div><div class="label">pobiera raty na Railway, bez żadnych uprawnień</div></div>
+  </div>
+  <div class="footer"><span>Kitty</span><span>09</span></div>
+</section>
+
+<!-- 10 · Close -->
+<section class="slide" style="justify-content:center">
+  <img src="../packages/web/src/app/opengraph-image.png" alt="" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); height:1100px; opacity:.18">
+  <div style="position:relative; text-align:center">
+    <p class="serif" style="font-size:60px; line-height:1.1"><span style="color:var(--mint)">Nikt</span> nie trzyma pieniędzy.</p>
+    <div class="rule" style="margin:40px auto"></div>
+    <p style="font-size:26px; font-weight:500; color:var(--cream); letter-spacing:-.01em">Jaromir Sewastianow · Michal Piotrowski</p>
+    <p class="mono" style="font-size:14px; letter-spacing:.04em; color:var(--muted); margin-top:16px">github.com/jxroo/kasa-bez-zarzadu</p>
+  </div>
+  <div class="footer"><span>Kitty</span><span>Dziękujemy</span></div>
+</section>
+
+</body>
+</html>
