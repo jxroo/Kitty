@@ -81,7 +81,7 @@ function App() {
         )}
         {tab === "kasy" && (kasa ? <KasaView kasa={kasa} onBack={() => open(null)} /> : <KasyList onOpen={open} />)}
         {tab === "how" && <HowItWorks />}
-        <ActivityFeed />
+        {tab === "kasy" && <ActivityFeed />}
       </main>
 
       <footer className="border-t border-slate-200 bg-void/60 py-4 text-xs text-slate-500">

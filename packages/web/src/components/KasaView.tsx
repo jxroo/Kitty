@@ -505,7 +505,7 @@ function RequestLoanForm({ kasa, me }: { kasa: WithAddress<Kasa>; me: WithAddres
       </form>
       {parsed !== null && parsed > 0n && (
         <div className="flex flex-wrap gap-2 mt-3">
-          <Badge tone="amber">Zablokujesz swoje: {formatZl(own)}</Badge>
+          <Badge tone="emerald">Zablokujesz swoje: {formatZl(own)}</Badge>
           <Badge tone={fromGuarantors > 0n ? "sky" : "emerald"}>
             {fromGuarantors > 0n ? `Inni muszą poręczyć: ${formatZl(fromGuarantors)}` : "Bez poręczeń – wypłata od razu"}
           </Badge>

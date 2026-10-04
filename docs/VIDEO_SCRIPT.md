@@ -1,5 +1,7 @@
 # Video script (≤ 3:00)
 
+**Opening:** the animated trailer in [`packages/video`](../packages/video) (`npm run render`, 40 s, sound effects only) can replace the three slides at 0:00–0:40. Keep the voice-over for those 40 seconds or let the trailer run on its own; the screen recording starts at 0:40 as below.
+
 Record with QuickTime (File → New Screen Recording) at 1080p, browser zoom 110%, Phantom on devnet ("Testnet mode"). Upload as **unlisted** on YouTube and put the link in SUBMISSION.md. Keep the voice-over calm; the screen does the work.
 
 **Before recording** (see `docs/DEMO_RUNBOOK.md`): three Phantom accounts named Anna, Bartek, Celina, each with test złoty from "Dobierz testowe zł". Check that the bot (`automat` on Railway) is running. About 1 minute before the climax shot, run `npx tsx scripts/demo-seed.ts --revoke` in `packages/web` and open the printed kasa link: installment 1 will be pulled by the bot about a minute later, installment 2 collected from collateral about 75 s after that. Explorer tab open.

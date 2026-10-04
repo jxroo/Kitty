@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Bot, ScrollText } from "lucide-react";
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Bot, Check, Info, ScrollText } from "lucide-react";
 import { ActivityKind, type Kasa } from "@/generated";
 import { fetchTokenBalance, type WithAddress } from "@/lib/chain";
 import { BOT_ADDRESS, describeError, formatZl, shortAddress } from "@/lib/kasa";
@@ -52,11 +52,19 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: "all", label: "Wszystko" },
 ];
 
+const FLOW_STYLE: Record<LedgerRow["flow"], { Icon: typeof ArrowDownLeft; ring: string }> = {
+  in: { Icon: ArrowDownLeft, ring: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  out: { Icon: ArrowUpRight, ring: "bg-rose-50 text-rose-700 border-rose-200" },
+  internal: { Icon: ArrowLeftRight, ring: "bg-amber-50 text-amber-800 border-amber-200" },
+  info: { Icon: Info, ring: "bg-slate-50 text-slate-500 border-slate-200" },
+};
+
 function when(blockTime: number | null) {
   if (blockTime === null) return "–";
   const d = new Date(blockTime * 1000);
-  const sameDay = d.toDateString() === new Date().toDateString();
-  return sameDay ? d.toLocaleTimeString("pl-PL") : d.toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "medium" });
+  const time = d.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
+  if (d.toDateString() === new Date().toDateString()) return `dziś, ${time}`;
+  return `${d.toLocaleDateString("pl-PL", { day: "numeric", month: "short" })}, ${time}`;
 }
 
 /**
@@ -155,7 +163,9 @@ export function KasaHistory({ kasa, names }: { kasa: WithAddress<Kasa>; names: M
           <span>
             Jest w kasie: <strong>{vault === null ? "…" : formatZl(vault)}</strong>{" "}
             {matches ? (
-              <span className="text-emerald-700">✓ zgadza się z historią</span>
+              <span className="inline-flex items-center gap-0.5 text-emerald-700">
+                <Check className="w-3.5 h-3.5" aria-hidden /> zgadza się z historią
+              </span>
             ) : complete ? (
               <span className="text-slate-500">(odświeżam…)</span>
             ) : null}
@@ -168,46 +178,50 @@ export function KasaHistory({ kasa, names }: { kasa: WithAddress<Kasa>; names: M
       {rows && shown.length === 0 && <p className="text-xs text-slate-500">Na razie nic tu nie ma.</p>}
 
       {shown.length > 0 && (
-        <div className="overflow-x-auto -mx-1">
-          <table className="w-full text-[11px] min-w-[560px]">
-            <thead>
-              <tr className="text-left text-slate-500">
-                <th className="font-medium pb-1.5 px-1">Kiedy</th>
-                <th className="font-medium pb-1.5 px-1">Co się stało</th>
-                <th className="font-medium pb-1.5 px-1">Kogo dotyczy</th>
-                <th className="font-medium pb-1.5 px-1 text-right">Kwota</th>
-                <th className="font-medium pb-1.5 px-1 text-right">W kasie potem</th>
-                <th className="font-medium pb-1.5 px-1">Kto wysłał</th>
-                <th className="font-medium pb-1.5 px-1">Dowód</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shown.map((r) => (
-                <tr key={`${r.signature}:${r.index}`} className="border-t border-slate-100 align-top">
-                  <td className="py-1.5 px-1 text-slate-500 font-mono whitespace-nowrap">{when(r.blockTime)}</td>
-                  <td className="py-1.5 px-1 text-slate-900">
-                    {describe(r)}
-                    {r.flow === "internal" && <div className="text-slate-500">pieniądze nie wychodzą z kasy</div>}
-                  </td>
-                  <td className="py-1.5 px-1 text-slate-700">{who(r.wallet)}</td>
-                  <td
-                    className={`py-1.5 px-1 text-right font-semibold whitespace-nowrap ${
-                      r.flow === "in" ? "text-emerald-700" : r.flow === "out" ? "text-rose-700" : "text-slate-500"
-                    }`}
-                  >
-                    {r.flow === "in" ? "+" : r.flow === "out" ? "−" : ""}
-                    {r.amount > 0n ? formatZl(r.amount) : "–"}
-                  </td>
-                  <td className="py-1.5 px-1 text-right text-slate-900 whitespace-nowrap">{r.flow === "info" ? "" : formatZl(r.balance)}</td>
-                  <td className="py-1.5 px-1 text-slate-700 whitespace-nowrap">{sender(r.sender)}</td>
-                  <td className="py-1.5 px-1">
+        <ul className="divide-y divide-slate-100">
+          {shown.map((r) => {
+            const { Icon, ring } = FLOW_STYLE[r.flow];
+            return (
+              <li key={`${r.signature}:${r.index}`} className="flex items-start gap-3 py-2.5">
+                <span className={`mt-0.5 shrink-0 w-7 h-7 rounded-full border flex items-center justify-center ${ring}`}>
+                  <Icon className="w-3.5 h-3.5" aria-hidden />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-semibold text-slate-900">{describe(r)}</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-1.5">
+                    <span>{who(r.wallet)}</span>
+                    <span aria-hidden>·</span>
+                    <span>{when(r.blockTime)}</span>
+                    {r.sender === BOT_ADDRESS && (
+                      <>
+                        <span aria-hidden>·</span>
+                        {sender(r.sender)}
+                      </>
+                    )}
+                    <span aria-hidden>·</span>
                     <TxLink signature={r.signature} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                  {r.flow === "internal" && <div className="text-[11px] text-slate-500 mt-0.5">Pieniądze nie wychodzą z kasy.</div>}
+                </div>
+                <div className="text-right shrink-0">
+                  {r.amount > 0n && (
+                    <div
+                      className={`text-sm font-bold tabular-nums whitespace-nowrap ${
+                        r.flow === "in" ? "text-emerald-700" : r.flow === "out" ? "text-rose-700" : "text-slate-600"
+                      }`}
+                    >
+                      {r.flow === "in" ? "+" : r.flow === "out" ? "−" : ""}
+                      {formatZl(r.amount)}
+                    </div>
+                  )}
+                  {r.flow !== "info" && (
+                    <div className="text-[11px] text-slate-500 tabular-nums whitespace-nowrap">w kasie {formatZl(r.balance)}</div>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
       {!complete && (
         <p className="text-[11px] text-slate-500 mt-2">

@@ -12,7 +12,7 @@ export function ActivityFeed() {
       <h3 className="kicker font-semibold text-[11px] mb-2">Twoje ostatnie operacje</h3>
       {busy && (
         <div className="text-xs text-slate-600 mb-2 animate-pulse" role="status">
-          ⏳ {busy}: czekam na podpis w portfelu i potwierdzenie sieci…
+          {busy}: czekam na podpis w portfelu i potwierdzenie sieci…
         </div>
       )}
       <ul className="space-y-1.5">
@@ -21,12 +21,12 @@ export function ActivityFeed() {
             <span className="text-slate-400 font-mono text-[10px]">{new Date(a.at).toLocaleTimeString("pl-PL")}</span>
             {a.signature ? (
               <>
-                <span className="text-emerald-700">✅ {a.label}</span>
+                <span className="text-emerald-700">{a.label}</span>
                 <TxLink signature={a.signature} />
               </>
             ) : (
               <span className="text-rose-600">
-                ⚠️ {a.label}: {a.error}
+                {a.label}: {a.error}
               </span>
             )}
           </li>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
 import { explorerAddress, explorerTx, shortAddress } from "@/lib/kasa";
 
 export function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -42,11 +42,16 @@ export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
 }
 
 export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  // The native control adds its own inner padding (macOS), so text sat further right than in
+  // inputs. appearance-none drops it; the chevron is drawn by us.
   return (
-    <select
-      {...props}
-      className={`w-full bg-void/60 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 focus:shadow-glow ${props.className ?? ""}`}
-    />
+    <div className="relative">
+      <select
+        {...props}
+        className={`appearance-none w-full bg-void/60 border border-slate-300 rounded-lg pl-3 pr-8 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 focus:shadow-glow ${props.className ?? ""}`}
+      />
+      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" aria-hidden />
+    </div>
   );
 }
 
