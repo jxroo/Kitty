@@ -6,7 +6,7 @@ import { History as HistoryIcon, Network } from "lucide-react";
 import { creditHistory, networkStats } from "@/lib/history";
 import { formatZl, plural } from "@/lib/kasa";
 import { useKasa } from "./KasaProvider";
-import { Card, Stat } from "./ui";
+import { Card, Kicker, Stat } from "./ui";
 
 /**
  * A borrower's record across every kasa, read from loan accounts on the chain:
@@ -48,9 +48,9 @@ export function NetworkCard() {
   const s = networkStats(chain);
   return (
     <Card>
-      <h2 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5">
-        <Network className="w-4 h-4 text-emerald-600" aria-hidden /> Wszystkie kasy razem
-      </h2>
+      <Kicker className="mb-3">
+        <Network className="w-4 h-4" aria-hidden /> Wszystkie kasy razem
+      </Kicker>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Stat label="Kasy" value={s.kasas} hint={`${s.people} ${plural(s.people, "osoba", "osoby", "osób")}`} />
         <Stat label="Odłożone" value={formatZl(s.savings)} hint="na kontach programu" tone="emerald" />

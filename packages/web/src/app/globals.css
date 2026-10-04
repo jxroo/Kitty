@@ -2,6 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The trailer's typefaces (packages/promo/public/fonts), self-hosted with their latin and
+   latin-ext subsets: Polish needs both (ó is latin, ą ę ł ń ś ź ż ć are latin-ext). */
+/* Bodoni Moda latin-ext */
+@font-face {
+  font-family: "Bodoni Moda";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("/fonts/bodoni-moda-normal-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* Bodoni Moda latin */
+@font-face {
+  font-family: "Bodoni Moda";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("/fonts/bodoni-moda-normal-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* Inter latin-ext */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("/fonts/inter-normal-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* Inter latin */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("/fonts/inter-normal-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* JetBrains Mono latin-ext */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono-normal-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* JetBrains Mono latin */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono-normal-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
@@ -10,8 +67,76 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: theme("fontFamily.sans");
   -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  /* The trailer's line: a bright core with a halo, fading out at both ends. Used under the
+     header and under the intro heading only; anywhere else it stops meaning anything. */
+  .kasa-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #34d399 12%, #d1fae5 50%, #34d399 88%, transparent);
+    filter: drop-shadow(0 0 3px rgba(16, 185, 129, 0.7)) drop-shadow(0 0 8px rgba(16, 185, 129, 0.35));
+  }
+
+  /* "Ktoś → Nikt nie": the line cuts "Ktoś" at x-height, it folds away and "Nikt nie" opens
+     in its place, one sentence after another (--d is the sentence's delay). */
+  .no-one-someone {
+    position: relative;
+    display: inline-block;
+    max-width: 4em;
+    white-space: nowrap;
+    clip-path: inset(0 0 -0.3em 0);
+    animation: no-one-out 0.4s ease-in calc(var(--d) + 0.4s) forwards;
+  }
+  .no-one-someone::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 58%;
+    height: 1.5px;
+    background: #34d399;
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: no-one-strike 0.35s ease-out var(--d) forwards;
+  }
+  .no-one-noone {
+    display: inline-block;
+    max-width: 0;
+    white-space: nowrap;
+    vertical-align: baseline;
+    clip-path: inset(0 0 -0.3em 0);
+    animation: no-one-in 0.4s ease-out calc(var(--d) + 0.4s) forwards;
+  }
+}
+
+@keyframes no-one-strike {
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes no-one-out {
+  to {
+    max-width: 0;
+    opacity: 0;
+  }
+}
+@keyframes no-one-in {
+  to {
+    max-width: 6em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .no-one-someone {
+    display: none;
+  }
+  .no-one-noone {
+    max-width: none;
+    animation: none;
+  }
 }
 
 /* Subtelny scrollbar */

@@ -44,7 +44,18 @@ const STATUS_TONE = {
   [LoanStatus.Cancelled]: "slate",
 } as const;
 
-const GUARANTOR_COLORS = ["bg-sky-500", "bg-indigo-500", "bg-violet-500"];
+// Shares of the cover told apart by engraving rather than colour, like the coverage ring in the
+// trailer: the borrower's own savings solid, each guarantor in its own pattern.
+const OWN_FILL: React.CSSProperties = { backgroundColor: "#059669" };
+const GUARANTOR_FILLS: React.CSSProperties[] = [
+  { backgroundColor: "#a7f3d0", backgroundImage: "repeating-linear-gradient(135deg, #10b981 0 2px, transparent 2px 4.5px)" },
+  { backgroundColor: "#d1fae5", backgroundImage: "radial-gradient(circle, #047857 1px, transparent 1.3px)", backgroundSize: "4px 4px" },
+  {
+    backgroundColor: "#ecfdf5",
+    backgroundImage:
+      "repeating-linear-gradient(45deg, #047857 0 1px, transparent 1px 4px), repeating-linear-gradient(-45deg, #047857 0 1px, transparent 1px 4px)",
+  },
+];
 
 type Props = {
   loan: WithAddress<Loan>;
@@ -59,7 +70,7 @@ export function LoanCard({ loan, kasa, names, me }: Props) {
   const isBorrower = me?.data.wallet === l.borrower;
 
   return (
-    <article className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3" aria-label={`Pożyczka ${name(l.borrower)}`}>
+    <article className="bg-white border border-slate-200 rounded-xl p-4 space-y-3" aria-label={`Pożyczka ${name(l.borrower)}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="font-bold text-slate-900">
@@ -97,18 +108,18 @@ function CollateralBar({ loan, name }: { loan: Loan; name: (w: string) => string
         {formatZl(total)}
       </div>
       <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden flex" role="img" aria-label={`Zablokowane ${formatZl(covered)} z ${formatZl(total)}`}>
-        <div className="bg-amber-400 h-full" style={{ width: `${pct(loan.ownCollateral)}%` }} />
+        <div className="h-full" style={{ ...OWN_FILL, width: `${pct(loan.ownCollateral)}%` }} />
         {guarantors.map((g, i) => (
-          <div key={g.wallet} className={`${GUARANTOR_COLORS[i]} h-full`} style={{ width: `${pct(g.amount)}%` }} />
+          <div key={g.wallet} className="h-full" style={{ ...GUARANTOR_FILLS[i], width: `${pct(g.amount)}%` }} />
         ))}
       </div>
       <ul className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-[11px] text-slate-700">
         <li className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-amber-400" aria-hidden /> {name(loan.borrower)} (swoje): {formatZl(loan.ownCollateral)}
+          <span className="w-3 h-3 rounded-sm" style={OWN_FILL} aria-hidden /> {name(loan.borrower)} (swoje): {formatZl(loan.ownCollateral)}
         </li>
         {guarantors.map((g, i) => (
           <li key={g.wallet} className="flex items-center gap-1">
-            <span className={`w-2.5 h-2.5 rounded-sm ${GUARANTOR_COLORS[i]}`} aria-hidden /> {name(g.wallet)} poręcza: {formatZl(g.amount)}
+            <span className="w-3 h-3 rounded-sm" style={GUARANTOR_FILLS[i]} aria-hidden /> {name(g.wallet)} poręcza: {formatZl(g.amount)}
             {g.seized > 0n && <span className="text-rose-600"> (stracone: {formatZl(g.seized)})</span>}
           </li>
         ))}

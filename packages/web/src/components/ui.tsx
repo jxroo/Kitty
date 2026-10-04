@@ -9,20 +9,21 @@ export function Card({ children, className = "" }: { children: React.ReactNode; 
   // defaults are only applied when the caller does not set its own background/border colour.
   const bg = /\bbg-/.test(className) ? "" : "bg-white";
   const border = /\bborder-(?!\d)/.test(className) ? "" : "border-slate-200";
-  return <div className={`border rounded-2xl p-5 shadow-sm ${bg} ${border} ${className}`}>{children}</div>;
+  return <div className={`border rounded-xl p-5 ${bg} ${border} ${className}`}>{children}</div>;
 }
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "danger" | "ghost" | "warning";
+  variant?: "primary" | "secondary" | "danger" | "ghost" | "ghostDark" | "warning";
 };
 
 export function Button({ variant = "primary", className = "", ...props }: ButtonProps) {
   const styles = {
-    primary: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm",
-    secondary: "bg-slate-900 hover:bg-slate-800 text-white shadow-sm",
+    primary: "bg-emerald-600 hover:bg-emerald-700 text-white",
+    secondary: "bg-navy hover:bg-slate-800 text-white",
     danger: "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200",
     ghost: "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200",
-    warning: "bg-amber-500 hover:bg-amber-600 text-white shadow-sm",
+    ghostDark: "bg-white/5 hover:bg-white/10 text-slate-200 border border-white/15",
+    warning: "bg-amber-500 hover:bg-amber-600 text-white",
   }[variant];
   return (
     <button
@@ -58,13 +59,17 @@ export function Label({ children, htmlFor }: { children: React.ReactNode; htmlFo
   );
 }
 
+// Proof links look like the signature column of the trailer's ledger: quiet slate mono.
+export const LINK =
+  "font-mono text-[11px] text-slate-600 hover:text-emerald-700 underline decoration-dotted decoration-slate-300 underline-offset-2 inline-flex items-center gap-0.5";
+
 export function AddressLink({ address, label }: { address: string; label?: string }) {
   return (
     <a
       href={explorerAddress(address)}
       target="_blank"
       rel="noreferrer"
-      className="font-mono text-[11px] text-sky-700 hover:underline inline-flex items-center gap-0.5"
+      className={LINK}
       title={address}
     >
       {label ?? shortAddress(address)}
@@ -79,7 +84,7 @@ export function TxLink({ signature }: { signature: string }) {
       href={explorerTx(signature)}
       target="_blank"
       rel="noreferrer"
-      className="font-mono text-[11px] text-sky-700 hover:underline inline-flex items-center gap-0.5"
+      className={LINK}
     >
       {signature.slice(0, 10)}…
       <ExternalLink className="w-2.5 h-2.5" aria-hidden />
@@ -113,7 +118,7 @@ export function Stat({ label, value, hint, tone = "slate" }: { label: string; va
   return (
     <div>
       <div className="text-[11px] text-slate-500">{label}</div>
-      <div className={`text-base font-bold ${color}`}>{value}</div>
+      <div className={`text-base font-bold tabular-nums ${color}`}>{value}</div>
       {hint && <div className="text-[11px] text-slate-500">{hint}</div>}
     </div>
   );
@@ -127,11 +132,33 @@ export function Badge({ children, tone = "slate" }: { children: React.ReactNode;
     rose: "bg-rose-50 text-rose-700 border-rose-200",
     sky: "bg-sky-50 text-sky-700 border-sky-200",
   }[tone];
-  return <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border whitespace-nowrap ${styles}`}>{children}</span>;
+  return <span className={`font-mono text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border whitespace-nowrap ${styles}`}>{children}</span>;
+}
+
+/** Section label in the trailer's kicker style: wide-tracked mono capitals. */
+export function Kicker({
+  children,
+  as: Tag = "h2",
+  tone = "light",
+  className = "",
+  id,
+}: {
+  children: React.ReactNode;
+  as?: "h2" | "h3" | "div";
+  tone?: "light" | "dark";
+  className?: string;
+  id?: string;
+}) {
+  const color = tone === "dark" ? "text-mint" : "text-emerald-700";
+  return (
+    <Tag id={id} className={`font-mono text-[11px] font-semibold uppercase tracking-[0.18em] flex items-center gap-1.5 ${color} ${className}`}>
+      {children}
+    </Tag>
+  );
 }
 
 export function EmptyState({ children }: { children: React.ReactNode }) {
-  return <div className="text-center text-xs text-slate-500 py-10 border border-dashed border-slate-300 rounded-2xl">{children}</div>;
+  return <div className="text-center text-xs text-slate-500 py-10 border border-dashed border-slate-300 rounded-xl">{children}</div>;
 }
 
 export function ErrorText({ children }: { children: React.ReactNode }) {

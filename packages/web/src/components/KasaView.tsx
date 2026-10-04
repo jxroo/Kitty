@@ -20,7 +20,7 @@ import { useChainNow, useKasa } from "./KasaProvider";
 import { CreditHistoryLine } from "./History";
 import { KasaHistory } from "./KasaHistory";
 import { LoanCard } from "./LoanCard";
-import { AddressLink, Badge, Button, Card, EmptyState, ErrorText, formatDuration, Input, Label, Select, Stat } from "./ui";
+import { AddressLink, Badge, Button, Card, EmptyState, ErrorText, formatDuration, Input, Kicker, Label, Select, Stat } from "./ui";
 
 export function KasaView({ kasa, onBack }: { kasa: Address; onBack: () => void }) {
   const { chain, wallet, loading } = useKasa();
@@ -61,9 +61,9 @@ export function KasaView({ kasa, onBack }: { kasa: Address; onBack: () => void }
           {me && <StandingOrderCard kasa={k} me={me} />}
           {me && me.data.openLoans === 0 && <RequestLoanForm kasa={k} me={me} />}
           <section aria-labelledby="loans-heading" className="space-y-3">
-            <h2 id="loans-heading" className="font-bold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-1.5">
+            <Kicker id="loans-heading" className="pt-2">
               <HandCoins className="w-4 h-4" aria-hidden /> Pożyczki
-            </h2>
+            </Kicker>
             {open.length === 0 && <EmptyState>Brak otwartych pożyczek w tej kasie.</EmptyState>}
             {open.map((l) => (
               <LoanCard key={l.address} loan={l} kasa={k} names={names} me={me} />
@@ -119,9 +119,9 @@ function RulesCard({ kasa }: { kasa: WithAddress<Kasa> }) {
   const d = kasa.data;
   return (
     <Card>
-      <h2 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5">
-        <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden /> Zasady tej kasy
-      </h2>
+      <Kicker className="mb-3">
+        <ShieldCheck className="w-4 h-4" aria-hidden /> Zasady tej kasy
+      </Kicker>
       <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
         <dt className="text-slate-500">Ile można pożyczyć</dt>
         <dd className="font-semibold text-slate-900">do {d.loanMultiplierBps / 10_000}× tego, co masz odłożone</dd>
@@ -153,10 +153,10 @@ function VaultCard({ kasa }: { kasa: WithAddress<Kasa> }) {
   const expected = kasa.data.totalSavings - kasa.data.totalOutstanding;
   return (
     <Card className="bg-emerald-50 border-emerald-200">
-      <h2 className="font-bold text-emerald-900 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
+      <Kicker className="mb-2">
         <Vault className="w-4 h-4" aria-hidden /> Pieniądze kasy
-      </h2>
-      <div className="text-2xl font-bold text-emerald-900">{vaultBalance === null ? "…" : formatZl(vaultBalance)}</div>
+      </Kicker>
+      <div className="text-2xl font-extrabold tracking-[-0.02em] tabular-nums text-emerald-900">{vaultBalance === null ? "…" : formatZl(vaultBalance)}</div>
       <p className="text-[11px] text-emerald-900 mt-1">
         = odłożone {formatZl(kasa.data.totalSavings)} − pożyczone {formatZl(kasa.data.totalOutstanding)}{" "}
         {vaultBalance !== null && (vaultBalance === expected ? "✓" : "(odświeżam…)")}
@@ -177,11 +177,11 @@ function MembersCard({ members }: { members: WithAddress<Member>[] }) {
   const [open, setOpen] = useState<string | null>(null);
   return (
     <Card>
-      <h2 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5">
+      <Kicker className="mb-3">
         <Users className="w-4 h-4" aria-hidden /> Członkowie ({members.length})
-      </h2>
+      </Kicker>
       {members.length === 0 && <p className="text-xs text-slate-500">Nikt jeszcze nie dołączył.</p>}
-      <table className="w-full text-[11px]">
+      <table className="w-full text-[11px] tabular-nums">
         <thead>
           <tr className="text-slate-500 text-left">
             <th className="font-medium pb-1">Imię</th>
