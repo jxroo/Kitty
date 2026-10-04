@@ -111,7 +111,7 @@ export function HowItWorks() {
             <thead>
               <tr className="text-left text-slate-500">
                 <th className="font-medium pb-2 pr-3 w-1/2">Today</th>
-                <th className="font-medium pb-2">In Boardless</th>
+                <th className="font-medium pb-2">In Kitty</th>
               </tr>
             </thead>
             <tbody>

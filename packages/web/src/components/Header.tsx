@@ -19,7 +19,7 @@ export function Header({ onHome }: { onHome: () => void }) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-white text-lg tracking-[-0.03em]">Boardless</span>
+              <span className="font-extrabold text-white text-lg tracking-[-0.03em]">Kitty</span>
               <span className="text-[10px] font-mono font-semibold uppercase tracking-[0.12em] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
                 Solana devnet
               </span>

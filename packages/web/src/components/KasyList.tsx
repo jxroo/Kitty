@@ -88,7 +88,7 @@ function Intro() {
     <Card className="relative overflow-hidden bg-navy border-emerald-200 text-white">
       {/* the vault from the film: an engraved rosette with an open eye */}
       <div className="absolute -right-24 -top-20 sm:-right-16 sm:-top-24 opacity-70 sm:opacity-90" aria-hidden>
-        <Rosette size={360} microprint={`BOARDLESS · NO BOARD · NO TREASURER · NO BANK · PROGRAM ${PROGRAM_ID} · `} className="turn-slow" />
+        <Rosette size={360} microprint={`KITTY · NO BOARD · NO TREASURER · NO BANK · PROGRAM ${PROGRAM_ID} · `} className="turn-slow" />
       </div>
       <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/70 to-transparent pointer-events-none" aria-hidden />
       <div className="relative">

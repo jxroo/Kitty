@@ -87,7 +87,7 @@ function App() {
       <footer className="border-t border-slate-200 bg-void/60 py-4 text-xs text-slate-500">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>
-            <strong className="text-slate-900">Boardless</strong> · a mutual savings and loan fund on Solana · HackYeah 2026 · Superteam Poland
+            <strong className="text-slate-900">Kitty</strong> · a mutual savings and loan fund on Solana · HackYeah 2026 · Superteam Poland
           </span>
           <span className="font-mono text-[11px] tracking-[0.04em]"><span className="text-emerald-700">program</span> {PROGRAM_ID}</span>
         </div>

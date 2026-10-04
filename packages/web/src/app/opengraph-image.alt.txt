@@ -1,1 +1,1 @@
-Boardless: a shared savings fund with no treasurer and no bank, on Solana
+Kitty: a shared savings fund with no treasurer and no bank, on Solana
