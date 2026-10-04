@@ -14,7 +14,7 @@ pub use state::*;
 
 declare_id!("2GCG5LMn8WNcgaZ2aWHCzzDW6hjkTCtYVRzykwsj7pcR");
 
-/// Kasa bez zarządu: a workplace-style savings and loan fund (KZP) with no board
+/// Kitty: a workplace-style savings and loan fund (KZP) with no board
 /// and no treasurer. Members' money sits in a vault owned by this program, loans
 /// are paid out only when locked savings cover them in full, and overdue
 /// installments are collected from that collateral by anyone. There is no admin

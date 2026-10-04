@@ -4,10 +4,10 @@
     "name": "kasa",
     "version": "0.1.0",
     "spec": "0.1.0",
-    "description": "Kasa bez zarządu: a savings and loan fund with no board, enforced on Solana"
+    "description": "Kitty: a savings and loan fund with no board, enforced on Solana"
   },
   "docs": [
-    "Kasa bez zarządu: a workplace-style savings and loan fund (KZP) with no board",
+    "Kitty: a workplace-style savings and loan fund (KZP) with no board",
     "and no treasurer. Members' money sits in a vault owned by this program, loans",
     "are paid out only when locked savings cover them in full, and overdue",
     "installments are collected from that collateral by anyone. There is no admin",

@@ -4,7 +4,7 @@
 
 ## Project title
 
-**Kasa bez zarządu: savings, 0% loans and direct debits with no board, no treasurer and no bank**
+**Kitty: savings, 0% loans and direct debits with no board, no treasurer and no bank**
 
 ## Team name
 
@@ -20,16 +20,14 @@
 |---|---|
 | Code repository (public) | https://github.com/jxroo/kasa-bez-zarzadu |
 | Live demo (Solana devnet) | https://web-production-ad49f.up.railway.app |
-| Video (≤ 3 min) | **TODO**: YouTube/Drive link (script: `docs/VIDEO_SCRIPT.md`) |
-| Pitch deck (PDF, 10 slides) | `docs/pitch.pdf` in the repo (also attached) |
+| Video (≤ 3 min) | **TODO**: YouTube/Drive link |
+| Pitch deck (PDF, 10 slides) | `pitch.pdf` in the repo (also attached) |
 | On-chain program | [`2GCG5LMn8WNcgaZ2aWHCzzDW6hjkTCtYVRzykwsj7pcR`](https://explorer.solana.com/address/2GCG5LMn8WNcgaZ2aWHCzzDW6hjkTCtYVRzykwsj7pcR?cluster=devnet) |
 | The bot (fee payer, no rights) | [`AuEGLSxJpfFqesbtQPDaBvTNqdsRUkZqPx3xiFjFqGqz`](https://explorer.solana.com/address/AuEGLSxJpfFqesbtQPDaBvTNqdsRUkZqPx3xiFjFqGqz?cluster=devnet) |
-| Recorded devnet run with explorer links | https://github.com/jxroo/kasa-bez-zarzadu/blob/HEAD/docs/devnet-e2e.md |
-| Screenshots | https://github.com/jxroo/kasa-bez-zarzadu/tree/HEAD/docs/screenshots |
 
 ## Short description (one paragraph)
 
-Kasa bez zarządu is a *kasa zapomogowo-pożyczkowa* (a workplace or group savings and loan fund) where a Solana program replaces the board, the treasurer, the payroll deduction and the bank services around them. Members' savings sit in a vault owned by the program, not in a treasurer's account. Anyone can borrow up to a multiple of their savings at 0%, with no approval: the loan pays out once locked savings, their own plus pledges from co-members who vouch for them, cover 100% of it. With one standard SPL allowance (revocable at any time) the borrower lets the program pull each installment from their wallet on its due date; a bot with no rights submits it, so nobody clicks anything. If the wallet is empty or the allowance revoked, after grace the installment is collected from collateral, again by anyone. The same mandate runs a standing contribution into savings every period, every loan stays on-chain as a public credit record that guarantors read before vouching, and every movement of a kasa's money is listed in a history read from the chain, with the balance after each step. Because every loan is fully covered, the vault always holds everyone's free savings and anyone can withdraw theirs at any moment. No instruction lets anyone, including the founder, the bot and the authors, change a kasa's rules or move someone else's money.
+Kitty is a *kasa zapomogowo-pożyczkowa* (a workplace or group savings and loan fund) where a Solana program replaces the board, the treasurer, the payroll deduction and the bank services around them. Members' savings sit in a vault owned by the program, not in a treasurer's account. Anyone can borrow up to a multiple of their savings at 0%, with no approval: the loan pays out once locked savings, their own plus pledges from co-members who vouch for them, cover 100% of it. With one standard SPL allowance (revocable at any time) the borrower lets the program pull each installment from their wallet on its due date; a bot with no rights submits it, so nobody clicks anything. If the wallet is empty or the allowance revoked, after grace the installment is collected from collateral, again by anyone. The same mandate runs a standing contribution into savings every period, every loan stays on-chain as a public credit record that guarantors read before vouching, and every movement of a kasa's money is listed in a history read from the chain, with the balance after each step. Because every loan is fully covered, the vault always holds everyone's free savings and anyone can withdraw theirs at any moment. No instruction lets anyone, including the founder, the bot and the authors, change a kasa's rules or move someone else's money.
 
 ## Detailed description
 
@@ -48,7 +46,7 @@ Small groups in Poland that already pool money: workplace KZPs (schools, public 
 7. **Installment 1 falls due and nobody clicks anything.** The bot submits `pull_installment`; the program takes exactly 250 zł from Bartek's wallet, without his signature, and the guarantors get 250 zł unlocked, 3:2. This is the moment the employer's payroll and the bank's direct debit are no longer needed.
 8. **Bartek stops paying: he revokes the allowance.** On installment 2 the bot's pull is refused (`NoMandate`). After grace the bot (or Celina, or anyone) collects 250 zł from Bartek's locked savings; when his collateral runs out, the rest comes from the guarantors pro rata. Nobody had to sue, call or deduct anything.
 9. **Anyone withdraws their free savings at any time**, even during all of this. The vault card shows live that vault = savings − lent.
-10. **"Historia kasy" lists every złoty that came in or went out**, read from the transactions on the chain: who, what, how much, the balance after each step, who sent it ("automat" for the bot) and a link to the explorer. The final balance is checked against the vault. A bank statement nobody can edit.
+10. **"Fund history" lists every złoty that came in or went out**, read from the transactions on the chain: who, what, how much, the balance after each step, who sent it ("bot" for the bot) and a link to the explorer. The final balance is checked against the vault. A bank statement nobody can edit.
 
 ## Design rationale
 
@@ -109,4 +107,4 @@ A PLN stablecoin with a BLIK on-ramp and passkey wallets; guarantees across kasa
 
 ## Technology
 
-Solana devnet · Anchor 1.1.2 program with SPL Token CPIs (transfers signed by the member's PDA as delegate) · 20 Rust tests (LiteSVM with the real token program) · 11 web unit tests · Codama-generated client · @solana/kit 8 with Wallet Standard (Phantom, Solflare, Backpack) · Next.js 16 · Playwright UI tests · Railway hosting (web app + bot). Built with an AI coding assistant (Claude Code); disclosed per HackYeah rules.
+Solana devnet · Anchor 1.1.2 program with SPL Token CPIs (transfers signed by the member's PDA as delegate) · 20 Rust tests (LiteSVM with the real token program) · 18 web unit tests · Codama-generated client · @solana/kit 8 with Wallet Standard (Phantom, Solflare, Backpack) · Next.js 16 · Playwright UI tests · Railway hosting (web app + bot). Built with an AI coding assistant (Claude Code); disclosed per HackYeah rules.
