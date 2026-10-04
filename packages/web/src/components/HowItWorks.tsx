@@ -3,14 +3,14 @@
 import React from "react";
 import { ExternalLink } from "lucide-react";
 import { PROGRAM_ID, REPO_URL } from "@/lib/kasa";
-import { AddressLink, Card, Kicker, LINK } from "./ui";
+import { AddressLink, Card } from "./ui";
 
 const SRC = `${REPO_URL}/blob/HEAD/packages/contracts/programs/kasa/src`;
 const WEB = `${REPO_URL}/blob/HEAD/packages/web`;
 
 function Code({ path, line, children, web = false }: { path: string; line: number; children: React.ReactNode; web?: boolean }) {
   return (
-    <a href={`${web ? WEB : SRC}/${path}#L${line}`} target="_blank" rel="noreferrer" className={LINK}>
+    <a href={`${web ? WEB : SRC}/${path}#L${line}`} target="_blank" rel="noreferrer" className="font-mono text-[11px] text-sky-700 hover:underline inline-flex items-center gap-0.5">
       {children}
       <ExternalLink className="w-2.5 h-2.5" aria-hidden />
     </a>
@@ -87,9 +87,9 @@ const SIMPLE: { today: string; here: string }[] = [
 export function HowItWorks() {
   return (
     <div className="space-y-5 max-w-4xl">
-      <Card className="bg-navy border-navy">
-        <h2 className="font-extrabold text-cream text-xl tracking-[-0.03em] mb-3">Jak to działa – w 5 zdaniach</h2>
-        <ol className="space-y-2.5 text-sm text-slate-200 leading-relaxed list-decimal list-inside marker:font-mono marker:font-semibold marker:text-mint">
+      <Card>
+        <h2 className="font-bold text-slate-900 text-lg mb-3">Jak to działa – w 5 zdaniach</h2>
+        <ol className="space-y-2.5 text-sm text-slate-800 leading-relaxed list-decimal list-inside marker:font-bold marker:text-emerald-600">
           <li>Grupa ludzi odkłada pieniądze do wspólnej kasy. Leżą na koncie programu, nie u skarbnika ani w banku.</li>
           <li>
             Każdy może pożyczyć kilka razy tyle, ile ma odłożone – bez odsetek i bez niczyjej zgody. Warunek: jego oszczędności i
@@ -104,23 +104,21 @@ export function HowItWorks() {
         </ol>
       </Card>
 
-      <Card className="bg-navy border-navy">
-        <Kicker tone="dark" className="mb-3">
-          Gdzie dokładnie znika pośrednik
-        </Kicker>
+      <Card>
+        <h2 className="kicker font-semibold text-[11px] mb-3">Gdzie dokładnie znika pośrednik</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-left font-mono text-[10px] uppercase tracking-[0.18em]">
-                <th className="font-semibold text-slate-400 pb-2 pr-4 w-1/2">Dziś</th>
-                <th className="font-semibold text-mint pb-2 pl-4">W Kasie bez zarządu</th>
+              <tr className="text-left text-slate-500">
+                <th className="font-medium pb-2 pr-3 w-1/2">Dziś</th>
+                <th className="font-medium pb-2">W Kasie bez zarządu</th>
               </tr>
             </thead>
             <tbody>
               {SIMPLE.map((r) => (
-                <tr key={r.today} className="border-t border-white/10 align-top">
-                  <td className="py-2.5 pr-4 font-serif text-sm leading-snug text-slate-300">{r.today}</td>
-                  <td className="py-2.5 pl-4 border-l border-line/50 text-cream font-medium">{r.here}</td>
+                <tr key={r.today} className="border-t border-slate-100 align-top">
+                  <td className="py-2 pr-3 text-slate-600">{r.today}</td>
+                  <td className="py-2 text-slate-900 font-medium">{r.here}</td>
                 </tr>
               ))}
             </tbody>
@@ -169,7 +167,7 @@ export function HowItWorks() {
         </p>
       </Card>
 
-      <details className="group bg-white border border-slate-200 rounded-xl">
+      <details className="group bg-panel/80 border border-slate-200 rounded-2xl shadow-sm">
         <summary className="cursor-pointer px-4 py-3 font-bold text-slate-900 text-sm">
           Dla jury i programistów: gdzie to jest w kodzie, kto może co, czego musicie nam ufać
         </summary>
@@ -222,7 +220,7 @@ export function HowItWorks() {
           </p>
           <p className="text-[11px] text-slate-500">
             Program: <AddressLink address={PROGRAM_ID} /> ·{" "}
-            <a href={REPO_URL} target="_blank" rel="noreferrer" className={LINK}>
+            <a href={REPO_URL} target="_blank" rel="noreferrer" className="text-sky-700 hover:underline">
               kod źródłowy
             </a>
           </p>

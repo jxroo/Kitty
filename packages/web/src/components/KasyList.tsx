@@ -5,12 +5,11 @@ import type { Address } from "@solana/kit";
 import { ArrowRight, Landmark, Plus, Users } from "lucide-react";
 import { LoanStatus } from "@/generated";
 import { createKasaIxs } from "@/lib/instructions";
-import { describeError, formatZl, MINT, randomId, utf8Length } from "@/lib/kasa";
+import { describeError, formatZl, MINT, PROGRAM_ID, randomId, utf8Length } from "@/lib/kasa";
 import { NetworkCard } from "./History";
 import { useKasa } from "./KasaProvider";
-import { NoOne } from "./NoOne";
 import { Rosette } from "./Rosette";
-import { Badge, Button, Card, EmptyState, ErrorText, formatDuration, Input, Kicker, Label, Select } from "./ui";
+import { Badge, Button, Card, EmptyState, ErrorText, formatDuration, Input, Label, Select } from "./ui";
 
 const PRESETS = {
   demo: { label: "Pokaz na żywo: rata co minutę, 15 s na spóźnienie", period: 60, grace: 15, installments: 6 },
@@ -26,9 +25,9 @@ export function KasyList({ onOpen }: { onOpen: (kasa: Address) => void }) {
       <section className="lg:col-span-7 space-y-3" aria-labelledby="kasy-heading">
         <Intro />
         <NetworkCard />
-        <Kicker id="kasy-heading" className="pt-2">
+        <h2 id="kasy-heading" className="kicker font-semibold text-xs pt-2">
           Wszystkie kasy
-        </Kicker>
+        </h2>
         {loading && <EmptyState>Czytam kasy z łańcucha…</EmptyState>}
         {!loading && chain.kasas.length === 0 && <EmptyState>Nie ma jeszcze żadnej kasy. Załóż pierwszą obok.</EmptyState>}
         {chain.kasas.map(({ address, data }) => {
@@ -37,7 +36,7 @@ export function KasyList({ onOpen }: { onOpen: (kasa: Address) => void }) {
             <button
               key={address}
               onClick={() => onOpen(address)}
-              className="w-full text-left bg-white border border-slate-200 hover:border-emerald-400 rounded-xl p-4 transition-colors"
+              className="w-full text-left bg-panel/80 border border-slate-200 hover:border-emerald-300 hover:shadow-glow rounded-2xl p-4 shadow-sm transition"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -53,7 +52,7 @@ export function KasyList({ onOpen }: { onOpen: (kasa: Address) => void }) {
                 </div>
                 <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" aria-hidden />
               </div>
-              <div className="flex flex-wrap gap-4 mt-3 text-xs text-slate-700 tabular-nums">
+              <div className="flex flex-wrap gap-4 mt-3 text-xs text-slate-700">
                 <span className="flex items-center gap-1">
                   <Users className="w-3.5 h-3.5" aria-hidden /> {data.memberCount} członków
                 </span>
@@ -86,31 +85,29 @@ function Intro() {
     { title: "Kasa nigdy nie traci", text: "Kto nie zapłaci, traci swoje zablokowane oszczędności; jeśli to za mało – ci, którzy za tę osobę poręczyli. Pieniądze reszty są bezpieczne." },
   ];
   return (
-    <Card className="bg-navy border-navy text-cream relative overflow-hidden">
-      <div className="flex gap-6 items-start">
-        <div className="flex-1 min-w-0">
-          <Kicker as="div" tone="dark">Solana devnet · bez pośredników</Kicker>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-[-0.03em] leading-tight mt-2">
-            Wspólna kasa bez skarbnika i bez banku
-          </h1>
-          <div className="kasa-line mt-3 mb-4 max-w-md" aria-hidden />
-          <NoOne />
-          <p className="text-xs text-slate-300 mt-4 leading-relaxed">
-            Dla grup, które już zrzucają się na wspólną kasę: współpracowników, szkół, znajomych, rodzin. Pieniędzy nie trzyma żaden
-            skarbnik ani bank, tylko program, którego zasad nikt nie może zmienić – ani założyciel, ani my, autorzy.
-          </p>
-        </div>
-        <Rosette className="hidden md:block w-44 lg:w-48 shrink-0 -mr-2" />
+    <Card className="relative overflow-hidden bg-navy border-emerald-200 text-white">
+      {/* the vault from the film: an engraved rosette with an open eye */}
+      <div className="absolute -right-24 -top-20 sm:-right-16 sm:-top-24 opacity-70 sm:opacity-90" aria-hidden>
+        <Rosette size={360} microprint={`KASA BEZ ZARZĄDU · PROGRAM ${PROGRAM_ID} · `} className="turn-slow" />
       </div>
-      <ol className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+      <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/70 to-transparent pointer-events-none" aria-hidden />
+      <div className="relative">
+      <h1 className="rise text-2xl font-extrabold tracking-[-0.03em] max-w-md">Wspólna kasa bez skarbnika i bez banku</h1>
+      <div className="rule-glow mt-3 max-w-sm" aria-hidden />
+      <p className="text-xs text-slate-700 mt-3 leading-relaxed max-w-lg">
+        Dla grup, które już zrzucają się na wspólną kasę: współpracowników, szkół, znajomych, rodzin. Pieniędzy nie trzyma żaden
+        skarbnik ani bank, tylko program, którego zasad nikt nie może zmienić – ani założyciel, ani my, autorzy.
+      </p>
+      <ol className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
         {steps.map((s, i) => (
-          <li key={s.title} className="bg-white/[0.04] border border-white/10 rounded-lg p-3">
-            <div className="font-mono text-mint text-[11px] font-semibold tracking-[0.18em]">{String(i + 1).padStart(2, "0")}</div>
-            <div className="text-sm font-semibold text-cream mt-0.5">{s.title}</div>
-            <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">{s.text}</p>
+          <li key={s.title} className="bg-void/60 backdrop-blur-sm border border-slate-200 rounded-xl p-3">
+            <div className="kicker text-[11px] font-bold">{i + 1}.</div>
+            <div className="text-sm font-semibold text-slate-900">{s.title}</div>
+            <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">{s.text}</p>
           </li>
         ))}
       </ol>
+      </div>
     </Card>
   );
 }

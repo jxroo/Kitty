@@ -9,7 +9,7 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { KasaProvider, useKasa } from "@/components/KasaProvider";
 import { KasaView } from "@/components/KasaView";
 import { KasyList } from "@/components/KasyList";
-import { PROGRAM_ID, REPO_URL } from "@/lib/kasa";
+import { PROGRAM_ID } from "@/lib/kasa";
 
 export default function Home() {
   return (
@@ -47,16 +47,23 @@ function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
-      <Header onHome={() => open(null)}>
-        <nav className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-5 overflow-x-auto" aria-label="Sekcje">
+    <div className="min-h-screen text-slate-700 flex flex-col">
+      <Header onHome={() => open(null)} />
+      <div className="border-b border-slate-200 bg-void/40">
+        <nav className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-2 py-2 overflow-x-auto" aria-label="Sekcje">
           {tabs.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setTab(id)}
               aria-current={tab === id ? "page" : undefined}
-              className={`flex items-center gap-1.5 pt-1 pb-2.5 border-b-2 text-xs font-semibold whitespace-nowrap transition-colors ${
-                tab === id ? "text-cream border-line" : "text-slate-400 border-transparent hover:text-slate-200"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+                tab === id
+                  ? id === "how"
+                    ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-300 shadow-glow"
+                    : "bg-slate-100 text-slate-900 ring-1 ring-slate-300"
+                  : id === "how"
+                    ? "text-emerald-700 hover:bg-emerald-50"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
               }`}
             >
               <Icon className="w-3.5 h-3.5" aria-hidden />
@@ -64,7 +71,7 @@ function App() {
             </button>
           ))}
         </nav>
-      </Header>
+      </div>
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-6 w-full space-y-6">
         {lastError && (
@@ -77,21 +84,12 @@ function App() {
         <ActivityFeed />
       </main>
 
-      <footer className="bg-void py-6 text-xs text-slate-400">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-          <div className="space-y-1.5">
-            <div>
-              <strong className="font-extrabold text-cream tracking-[-0.03em]">Kasa bez zarządu</strong> · kasa zapomogowo-pożyczkowa na
-              Solanie · HackYeah 2026 · Superteam Poland
-            </div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em]">
-              <span className="text-mint">Solana devnet · otwarty kod</span>{" "}
-              <a href={REPO_URL} target="_blank" rel="noreferrer" className="normal-case tracking-normal text-slate-500 hover:text-slate-300">
-                {REPO_URL.replace(/^https?:\/\//, "")}
-              </a>
-            </div>
-          </div>
-          <span className="font-mono text-[11px] text-slate-500 break-all">program {PROGRAM_ID}</span>
+      <footer className="border-t border-slate-200 bg-void/60 py-4 text-xs text-slate-500">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span>
+            <strong className="text-slate-900">Kasa bez zarządu</strong> · kasa zapomogowo-pożyczkowa na Solanie · HackYeah 2026 · Superteam Poland
+          </span>
+          <span className="font-mono text-[11px] tracking-[0.04em]"><span className="text-emerald-700">program</span> {PROGRAM_ID}</span>
         </div>
       </footer>
     </div>

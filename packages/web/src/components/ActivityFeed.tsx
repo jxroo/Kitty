@@ -2,14 +2,14 @@
 
 import React from "react";
 import { useKasa } from "./KasaProvider";
-import { Card, Kicker, TxLink } from "./ui";
+import { Card, TxLink } from "./ui";
 
 export function ActivityFeed() {
   const { activity, busy } = useKasa();
   if (!busy && activity.length === 0) return null;
   return (
     <Card>
-      <Kicker as="h3" className="mb-2">Twoje ostatnie operacje</Kicker>
+      <h3 className="kicker font-semibold text-[11px] mb-2">Twoje ostatnie operacje</h3>
       {busy && (
         <div className="text-xs text-slate-600 mb-2 animate-pulse" role="status">
           ⏳ {busy}: czekam na podpis w portfelu i potwierdzenie sieci…

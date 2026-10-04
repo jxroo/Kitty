@@ -135,7 +135,7 @@ export function KasaHistory({ kasa, names }: { kasa: WithAddress<Kasa>; names: M
               onClick={() => setFilter(f.id)}
               aria-pressed={filter === f.id}
               className={`text-[11px] px-2 py-1 rounded-md border ${
-                filter === f.id ? "bg-navy text-white border-navy" : "bg-white text-slate-700 border-slate-200 hover:border-slate-400"
+                filter === f.id ? "bg-emerald-50 text-emerald-700 border-emerald-300 shadow-glow" : "bg-transparent text-slate-600 border-slate-200 hover:border-slate-400"
               }`}
             >
               {f.label}
@@ -145,7 +145,7 @@ export function KasaHistory({ kasa, names }: { kasa: WithAddress<Kasa>; names: M
       </div>
 
       {rows && (
-        <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-700 tabular-nums mb-3">
+        <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-700 mb-3">
           <span>
             Wpłynęło: <strong className="text-emerald-700">{formatZl(totals.inflow)}</strong>
           </span>
@@ -191,14 +191,14 @@ export function KasaHistory({ kasa, names }: { kasa: WithAddress<Kasa>; names: M
                   </td>
                   <td className="py-1.5 px-1 text-slate-700">{who(r.wallet)}</td>
                   <td
-                    className={`py-1.5 px-1 text-right font-mono font-semibold tabular-nums whitespace-nowrap ${
+                    className={`py-1.5 px-1 text-right font-semibold whitespace-nowrap ${
                       r.flow === "in" ? "text-emerald-700" : r.flow === "out" ? "text-rose-700" : "text-slate-500"
                     }`}
                   >
                     {r.flow === "in" ? "+" : r.flow === "out" ? "−" : ""}
                     {r.amount > 0n ? formatZl(r.amount) : "–"}
                   </td>
-                  <td className="py-1.5 px-1 text-right font-mono tabular-nums text-slate-900 whitespace-nowrap">{r.flow === "info" ? "" : formatZl(r.balance)}</td>
+                  <td className="py-1.5 px-1 text-right text-slate-900 whitespace-nowrap">{r.flow === "info" ? "" : formatZl(r.balance)}</td>
                   <td className="py-1.5 px-1 text-slate-700 whitespace-nowrap">{sender(r.sender)}</td>
                   <td className="py-1.5 px-1">
                     <TxLink signature={r.signature} />

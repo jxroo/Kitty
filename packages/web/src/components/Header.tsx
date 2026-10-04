@@ -5,23 +5,26 @@ import { Coins, LogOut, RefreshCw, Wallet } from "lucide-react";
 import { useConnect, useDisconnect, useWallets, WalletReadyGate } from "@solana/kit-plugin-wallet/react";
 import { describeError, formatSol, formatZl, shortAddress } from "@/lib/kasa";
 import { useKasa } from "./KasaProvider";
+import { Rosette } from "./Rosette";
 import { Button } from "./ui";
 
-export function Header({ onHome, children }: { onHome: () => void; children?: React.ReactNode }) {
+export function Header({ onHome }: { onHome: () => void }) {
   const { client, refresh } = useKasa();
   return (
-    <header className="bg-navy sticky top-0 z-40">
+    <header className="bg-void/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
         <button onClick={onHome} className="flex items-center gap-3 text-left">
-          <img src="/logo.png" alt="" width={36} height={36} className="w-9 h-9 rounded-full" />
+          <div className="w-10 h-10 shrink-0 flex items-center justify-center">
+            <Rosette size={40} preset="mark" engraveMs={1600} className="turn-slow" />
+          </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-cream text-lg tracking-[-0.03em]">Kasa bez zarządu</span>
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-mint px-1.5 py-0.5 rounded border border-mint/30">
+              <span className="font-extrabold text-white text-lg tracking-[-0.03em]">Kasa bez zarządu</span>
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-[0.12em] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
                 Solana devnet
               </span>
             </div>
-            <p className="text-xs text-slate-400">Wspólna kasa dla grupy: odkładacie i pożyczacie sobie bez odsetek – bez skarbnika i bez banku</p>
+            <p className="text-xs text-slate-500">Wspólna kasa dla grupy: odkładacie i pożyczacie sobie bez odsetek – bez skarbnika i bez banku</p>
           </div>
         </button>
         <div className="flex items-center gap-2">
@@ -29,7 +32,7 @@ export function Header({ onHome, children }: { onHome: () => void; children?: Re
             onClick={() => refresh()}
             title="Odśwież stan z łańcucha"
             aria-label="Odśwież stan z łańcucha"
-            className="p-2 text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg border border-white/15"
+            className="p-2 text-slate-500 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 rounded-lg border border-slate-300 transition"
           >
             <RefreshCw className="w-4 h-4" aria-hidden />
           </button>
@@ -38,8 +41,6 @@ export function Header({ onHome, children }: { onHome: () => void; children?: Re
           </WalletReadyGate>
         </div>
       </div>
-      {children}
-      <div className="kasa-line" aria-hidden />
     </header>
   );
 }
@@ -54,17 +55,17 @@ function WalletButton() {
   if (wallet) {
     return (
       <div className="flex items-center gap-2">
-        <Button variant="ghostDark" className="whitespace-nowrap" onClick={requestFaucet} disabled={!!busy} title="Testowe tPLN (i trochę SOL na opłaty) z faucetu devnet">
+        <Button variant="ghost" onClick={requestFaucet} disabled={!!busy} title="Testowe tPLN (i trochę SOL na opłaty) z faucetu devnet">
           <Coins className="w-3.5 h-3.5" aria-hidden />
           Dobierz testowe zł
         </Button>
         <div className="text-right">
-          <div className="font-mono text-xs font-semibold text-cream">{shortAddress(wallet)}</div>
-          <div className="text-[11px] text-slate-400 tabular-nums">
+          <div className="font-mono text-xs font-semibold text-slate-900">{shortAddress(wallet)}</div>
+          <div className="text-[11px] text-slate-500">
             {tokenBalance !== null ? formatZl(tokenBalance) : "0 zł"} · {solBalance !== null ? `${formatSol(solBalance)} SOL` : "…"}
           </div>
         </div>
-        <Button variant="ghostDark" onClick={() => disconnect.dispatch()} title="Rozłącz portfel" aria-label="Rozłącz portfel">
+        <Button variant="ghost" onClick={() => disconnect.dispatch()} title="Rozłącz portfel" aria-label="Rozłącz portfel">
           <LogOut className="w-3.5 h-3.5" aria-hidden />
         </Button>
       </div>
@@ -73,12 +74,12 @@ function WalletButton() {
 
   return (
     <div className="relative">
-      <Button className="whitespace-nowrap" onClick={() => setOpen((v) => !v)} disabled={connect.isRunning}>
+      <Button variant="secondary" onClick={() => setOpen((v) => !v)} disabled={connect.isRunning}>
         <Wallet className="w-3.5 h-3.5" aria-hidden />
         {connect.isRunning ? "Łączenie…" : "Połącz portfel"}
       </Button>
       {open && (
-        <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-lg p-2 z-50">
+        <div className="absolute right-0 mt-2 w-64 bg-panel border border-slate-200 rounded-xl shadow-lg p-2 z-50">
           {wallets.length === 0 && (
             <p className="text-xs text-slate-600 p-2">
               Nie wykryto portfela. Zainstaluj Phantom, Solflare lub Backpack i przełącz go na devnet.
@@ -101,7 +102,7 @@ function WalletButton() {
         </div>
       )}
       {connect.error != null && (
-        <p className="absolute right-0 mt-1 text-[11px] text-rose-300 w-64 text-right">{describeError(connect.error)}</p>
+        <p className="absolute right-0 mt-1 text-[11px] text-rose-600 w-64 text-right">{describeError(connect.error)}</p>
       )}
     </div>
   );
